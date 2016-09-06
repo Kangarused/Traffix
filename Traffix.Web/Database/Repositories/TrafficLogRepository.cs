@@ -15,7 +15,7 @@ namespace Traffix.Web.Database.Repositories
     public interface ITrafficLogRepoistory : IAbstractRepository<TrafficLog>
     {
         Task<List<TrafficLog>> GetTrafficLogsForMeter(int meterId);
-        Task<List<TrafficLogsRequest>> GetTrafficLogsForMeters(TrafficMetersList list);
+        Task<List<SortedTrafficLogs>> GetTrafficLogsForMeters(TrafficMetersList list);
     }
 
     [PerRequest]
@@ -32,15 +32,15 @@ namespace Traffix.Web.Database.Repositories
             return result;
         }
 
-        public async Task<List<TrafficLogsRequest>> GetTrafficLogsForMeters(TrafficMetersList list)
+        public async Task<List<SortedTrafficLogs>> GetTrafficLogsForMeters(TrafficMetersList list)
         {
-            List<TrafficLogsRequest> request = new List<TrafficLogsRequest>();
+            List<SortedTrafficLogs> request = new List<SortedTrafficLogs>();
 
             foreach (int id in list.MeterIds)
             {
                 var query = Db.From<TrafficLog>().Where(x => x.MeterId == id);
                 var result = await Db.LoadSelectAsync(query);
-                request.Add(new TrafficLogsRequest
+                request.Add(new SortedTrafficLogs
                 {
                     MeterId = id,
                     Logs = result

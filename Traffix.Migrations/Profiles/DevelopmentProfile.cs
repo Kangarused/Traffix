@@ -23,8 +23,10 @@ namespace Traffix.Migrations.Profiles
                 Region = "Northern Territory",
                 Latitude = -12.450095,
                 Longitude = 130.922595,
-                Congestion = 0,
-                DateActive = DateTime.Now},
+                Congestion = 2,
+                DateActive = DateTime.Now,
+                LinkId = "Tiger Brennan"
+            },
             new MockTrafficMeter {
                 Id = 2,
                 Name = "Meter 2",
@@ -32,7 +34,9 @@ namespace Traffix.Migrations.Profiles
                 Latitude = -12.435321,
                 Longitude = 130.897262,
                 Congestion = 1,
-                DateActive = DateTime.Now}
+                DateActive = DateTime.Now,
+                LinkId = "Tiger Brennan"
+            }
         }; 
 
         public override void Up()
@@ -66,7 +70,8 @@ namespace Traffix.Migrations.Profiles
                     meter.Latitude,
                     meter.Longitude,
                     meter.Congestion,
-                    meter.DateActive
+                    meter.DateActive,
+                    meter.LinkId
                 });
             }
         }

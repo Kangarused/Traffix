@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Web;
 using System.Web.Http;
+using Traffix.Common.Dtos;
 using Traffix.Common.Model;
 using Traffix.Web.Database.Repositories;
 
@@ -27,20 +28,21 @@ namespace Traffix.Web.Controllers
             return results;
         }
 
-        //[AcceptVerbs("GET")]
-        //public Task<List<TrafficMeter>> GetTrafficMetersWithinRadius(string location, int radius)
-        //{
-        //    GeoCoordinate cords = GetGeoCoordianteFromString(location);
-        //    //var distance = 
-        //}
-
-        private GeoCoordinate GetGeoCoordianteFromString(string location)
+        [AcceptVerbs("GET")]
+        public async Task<List<LinkedTrafficMeters>> GetLinkedTrafficMeters()
         {
-            string[] values = location.Split(',');
-            double latitude = Double.Parse(values[0]);
-            double longitude = Double.Parse(values[1]);
+            var results = await _trafficMeterRepoistory.GetAllAsync();
+            List<LinkedTrafficMeters> list = new List<LinkedTrafficMeters>();
 
-            return new GeoCoordinate(latitude, longitude);
-        } 
+            foreach (var meterGroup in results.GroupBy(x => x.LinkId))
+            {
+                list.Add(new LinkedTrafficMeters
+                {
+                    LinkedMeters = meterGroup.ToList()
+                });
+            }
+
+            return list;
+        }
     }
 }

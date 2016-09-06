@@ -4,8 +4,12 @@
 ****************************************************************************/
 
 declare module Traffix.Models {
-    /** Generated from Traffix.Common.Dtos.TrafficLogsRequest **/
-    export interface ITrafficLogsRequest {
+    /** Generated from Traffix.Common.Dtos.LinkedTrafficMeters **/
+    export interface ILinkedTrafficMeters {
+        linkedMeters: Traffix.Models.ITrafficMeter[];
+    }
+    /** Generated from Traffix.Common.Dtos.SortedTrafficLogs **/
+    export interface ISortedTrafficLogs {
         meterId: number;
         logs: Traffix.Models.ITrafficLog[];
     }
@@ -29,6 +33,7 @@ declare module Traffix.Models {
         longitude: number;
         congestion: number;
         dateActive: string;
+        linkId: string;
     }
     /** Generated from Traffix.Common.Model.TrafficLog **/
     export interface ITrafficLog {

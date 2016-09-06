@@ -27,7 +27,7 @@ namespace Traffix.Web.Controllers
         }
 
         [AcceptVerbs("POST")]
-        public async Task<List<TrafficLogsRequest>> GetTrafficLogsForMeters(TrafficMetersList list)
+        public async Task<List<SortedTrafficLogs>> GetTrafficLogsForMeters(TrafficMetersList list)
         {
             var logs = await _trafficLogRepoistory.GetTrafficLogsForMeters(list);
             return logs;

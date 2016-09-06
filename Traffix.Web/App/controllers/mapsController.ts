@@ -9,11 +9,11 @@
 
         map;
         height: number;
-        gMarkers = [];
         polyLines = [];
 
-        meters: Models.ITrafficMeter[];
-        logs: Models.ITrafficLogsRequest[];
+        allMeters: Models.ITrafficMeter[] = [];
+        meters: Models.ILinkedTrafficMeters[];
+        logs: Models.ISortedTrafficLogs[];
 
         popupInfo = {
             congestion: null,
@@ -21,6 +21,12 @@
             avgSpeed: null,
             totalVehicles: null,
             timeBetween: null
+        }
+
+        colors = {
+            low: '#669900',
+            medium: '#997300',
+            high: '#990000'
         }
 
         constructor(
@@ -58,73 +64,117 @@
         }
 
         loadTrafficData() {
-        this.trafficDataService.getTrafficMeters().then(
+        this.trafficDataService.getLinkedTrafficMeters().then(
             (response) => {
                 this.meters = response.data;
-                var ids = Enumerable.From(this.meters).Select((x) => x.id).ToArray();
-                var list = { meterIds: ids };
+                var list = {meterIds: []};
+                for (var i = 0; i < this.meters.length; i++) {
+                    for (var x = 0; x < this.meters[i].linkedMeters.length; x++) {
+                        this.allMeters.push(this.meters[i].linkedMeters[x]);
+                        list.meterIds.push(this.meters[i].linkedMeters[x].id);
+                    }
+                }
                 this.trafficDataService.getTrafficLogsForMeters(list).then(
-                    (response) => {
-                        this.logs = response.data;
-                        this.snapMetersToRoads();
-                    });
+                (response) => {
+                    this.logs = response.data;
+                    this.snapMetersToRoads();
+                });
             });
         }
 
         snapMetersToRoads() {
             var directionsService = new google.maps.DirectionsService();
             for (var i = 0; i < this.meters.length; i++) {
-                var congestion = this.meters[i].congestion;
-                var latlng = { lat: this.meters[i].latitude, lng: this.meters[i].longitude};
-                var request = {
-                    origin: latlng,
-                    destination: latlng,
-                    travelMode: google.maps.TravelMode.DRIVING
-                };
+                for (var x = 0; x < this.meters[i].linkedMeters.length; x++) {
 
-                directionsService.route(request, (response, status) => {
-                    if (status == google.maps.DirectionsStatus.OK) {
-                        var pos = response.routes[0].legs[0].start_location;
-                        this.gMarkers.push({ lat: pos.lat(), long: pos.lng() });
+                    var latlng = { lat: this.meters[i].linkedMeters[x].latitude, lng: this.meters[i].linkedMeters[x].longitude };
+                    var request = {
+                        origin: latlng,
+                        destination: latlng,
+                        travelMode: google.maps.TravelMode.DRIVING
+                    };
+                    var lastMeter = (this.meters.length - 1 == i);
 
-                        this.$scope.$apply();
-
-                        if (this.gMarkers.length >= 2) {
-                            this.displayRouteForMarkers();
-                        }
-                    }    
-                });
+                    directionsService.route(request, this.updateMeters(i, x, lastMeter));
+                }
             }
         }
 
-        displayRouteForMarkers() {
+        updateMeters = (group, index, lastMeter) => {
+            return (response, status) => {
+                if (status == google.maps.DirectionsStatus.OK) {
+                    var pos = response.routes[0].legs[0].start_location;
+                    this.meters[group].linkedMeters[index].latitude = pos.lat();
+                    this.meters[group].linkedMeters[index].longitude = pos.lng();
+
+                    this.$scope.$apply();
+
+                    if (lastMeter) {
+                        for (var i = 0; i < this.meters.length; i++) {
+                            if (this.meters[i].linkedMeters.length > 1) {
+                                this.displayRouteForMarkers(this.meters[i].linkedMeters[0], this.meters[i].linkedMeters[1]);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        displayRouteForMarkers(start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
             var directionsService = new google.maps.DirectionsService();
-            var start = { lat: this.meters[0].latitude, lng: this.meters[0].longitude };
-            var end = { lat: this.meters[1].latitude, lng: this.meters[1].longitude };
+            var startPoint = { lat: start.latitude, lng: start.longitude };
+            var endPoint = { lat: end.latitude, lng: end.longitude };
 
             var request = {
-                origin: start,
-                destination: end,
+                origin: startPoint,
+                destination: endPoint,
                 travelMode: google.maps.TravelMode.DRIVING
             }
 
-            directionsService.route(request, (response, status) => {
+            directionsService.route(request, this.drawRoutes(start, end));
+        }
+
+        drawRoutes(start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
+            return (response, status) => {
                 if (status == google.maps.DirectionsStatus.OK) {
                     var route = response;
-                    var snappedPolyline = new google.maps.Polyline({
-                        path: route.routes[0].overview_path,
-                        strokeColor: '#009933',
+
+                    var half_length = Math.ceil(route.routes[0].overview_path.length / 2);
+                    var startHalf = route.routes[0].overview_path.splice(0, half_length);
+                    startHalf.push(route.routes[0].overview_path[0]);
+
+                    var snappedPolyline1 = new google.maps.Polyline({
+                        path: startHalf,
+                        strokeColor: this.getCongestionColor(start.congestion),
                         strokeWeight: 7,
                         strokeOpacity: 0.5
                     });
-                    snappedPolyline.setMap(this.map);
-                    this.polyLines.push(snappedPolyline);
+
+                    var snappedPolyline2 = new google.maps.Polyline({
+                        path: route.routes[0].overview_path,
+                        strokeColor: this.getCongestionColor(end.congestion),
+                        strokeWeight: 7,
+                        strokeOpacity: 0.5
+                    });
+
+                    snappedPolyline1.setMap(this.map);
+                    snappedPolyline2.setMap(this.map);
+                    this.polyLines.push(snappedPolyline1);
+                    this.polyLines.push(snappedPolyline2);
                 }
-            });
+            }
         }
 
-        showPopup = (evt, index) => {
-            var meter = this.meters[index];
+        getCongestionColor(congestion) {
+            if (congestion == 1) {
+                return this.colors.medium;
+            } else if (congestion == 2) {
+                return this.colors.high;
+            }
+            return this.colors.low;
+        }
+
+        showPopup = (evt, meter: Models.ITrafficMeter) => {
             var id = 'meter-' + meter.id;
 
             this.popupInfo.congestion = meter.congestion;

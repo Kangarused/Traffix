@@ -76,6 +76,8 @@ namespace Traffix.Common.Model
         [Required]
         public int Congestion { get; set;}
         public string DateActive { get; set;}
+        [Required]
+        public string LinkId { get; set;}
     }
 
 [Alias("VersionInfo")]

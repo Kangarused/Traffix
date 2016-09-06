@@ -4,14 +4,14 @@
      map-lazy-load-params="{{vm.googleMapsUrl}}">
 
     <ng-map id="traffixMap" map-initialized="vm.initMap(map)" center="[{{vm.defaultLat}}, {{vm.defaultLong}}]" style="height: {{vm.height}}px; ">
-        <custom-marker ng-repeat="p in vm.gMarkers track by $index"
-                       id="meter-{{vm.meters[$index].id}}"
-                       on-click="vm.showPopup(event, {{$index}})"
-                       position="{{[p.lat, p.long]}}">
+        <custom-marker ng-repeat="p in vm.allMeters track by $index"
+                       id="meter-{{p.id}}"
+                       on-click="vm.showPopup(event, p)"
+                       position="{{[p.latitude, p.longitude]}}">
             <div>
-                <img ng-show="vm.meters[$index].congestion == 0" src="../../Content/images/markers/greenMarker.png"/>
-                <img ng-show="vm.meters[$index].congestion == 1" src="../../Content/images/markers/orangeMarker.png"/>
-                <img ng-show="vm.meters[$index].congestion == 2" src="../../Content/images/markers/redMarker.png"/>
+                <img ng-show="p.congestion == 0" src="../../Content/images/markers/greenMarker.png"/>
+                <img ng-show="p.congestion == 1" src="../../Content/images/markers/orangeMarker.png"/>
+                <img ng-show="p.congestion == 2" src="../../Content/images/markers/redMarker.png"/>
             </div>
         </custom-marker>
 

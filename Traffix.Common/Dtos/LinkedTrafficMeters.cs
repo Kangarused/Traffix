@@ -9,9 +9,8 @@ using Traffix.Common.Model;
 namespace Traffix.Common.Dtos
 {
     [TypeScriptInterface]
-    public class TrafficLogsRequest
+    public class LinkedTrafficMeters
     {
-        public int MeterId { get; set; }
-        public List<TrafficLog> Logs { get; set; }
+        public List<TrafficMeter> LinkedMeters { get; set; } 
     }
 }
