@@ -1,0 +1,50 @@
+﻿@using System.Web.Optimization
+@using Traffix.Common
+@using Traffix.Web
+@using Newtonsoft.Json
+@using Newtonsoft.Json.Serialization
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Traffix</title>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="author" content="Robert Jackson" />
+    <meta name="description" content="Website that displays traffic congestion in near real-time" />
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
+
+    @Styles.Render(CommonBundleConfig.SiteCommonStyles)
+    @Styles.Render(BundleConfig.SiteStyles)
+
+    @Scripts.Render(CommonBundleConfig.SiteCommonScripts)
+    @Scripts.Render(BundleConfig.SiteScripts)
+    @Scripts.Render(CommonBundleConfig.SiteCommonAngularSettings)
+    @Scripts.Render(BundleConfig.SitePartials)
+</head>
+<body ng-app="traffix">
+    <nav class="navbar navbar-inverse" role="navigation">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <a class="navbar-brand" style="cursor: pointer;" ui-sref="dashboard">
+                    <span class="fa fa-car"></span> Traffix
+                </a>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid map">
+        <div ui-view>
+
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+        </div>
+    </footer>
+
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" />
+</body>
+
+</html>

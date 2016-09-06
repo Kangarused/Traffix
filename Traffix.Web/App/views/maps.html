@@ -1,0 +1,57 @@
+﻿<div style="height: 100%; width: 100%;"
+
+     map-lazy-load="https://maps.google.com/maps/api/js"
+     map-lazy-load-params="{{vm.googleMapsUrl}}">
+
+    <ng-map id="traffixMap" map-initialized="vm.initMap(map)" center="[{{vm.defaultLat}}, {{vm.defaultLong}}]" style="height: {{vm.height}}px; ">
+        <custom-marker ng-repeat="p in vm.gMarkers track by $index"
+                       id="meter-{{vm.meters[$index].id}}"
+                       on-click="vm.showPopup(event, {{$index}})"
+                       position="{{[p.lat, p.long]}}">
+            <div>
+                <img ng-show="vm.meters[$index].congestion == 0" src="../../Content/images/markers/greenMarker.png"/>
+                <img ng-show="vm.meters[$index].congestion == 1" src="../../Content/images/markers/orangeMarker.png"/>
+                <img ng-show="vm.meters[$index].congestion == 2" src="../../Content/images/markers/redMarker.png"/>
+            </div>
+        </custom-marker>
+
+        <info-window id="popup">
+            <div ng-non-bindable="" class="iw-container" dom-on-create="vm.customisePopup()">
+                <div class="form-horizontal infoPopup">
+                    <div class="col-md-12" ng-class="vm.getCongestionClass()">
+                        <h4 class="popupHeader">{{vm.popupInfo.header}}</h4>
+                    </div>
+                    <div>
+                        <div style="padding-top: 15px;" class="col-md-12">
+                            <div class="form-group">
+                                <label for="avgSpeed" class="col-md-2 form-control-static">
+                                    <img src="../../Content/images/popup/speedMeter.png" />
+                                </label>
+                                <p class="form-control-static col-md-10" id="avgSpeed">{{vm.popupInfo.avgSpeed}} Km/Hr Average</p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="totalVehicles" class="col-md-2 form-control-static">
+                                    <img src="../../Content/images/popup/car.png" />
+                                </label>
+                                <p class="form-control-static col-md-10" id="totalVehicles">{{vm.popupInfo.totalVehicles}} Vehicles Today</p>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label for="timeBetween" class="col-md-2 form-control-static">
+                                    <img src="../../Content/images/popup/stopWatch.png" />
+                                </label>
+                                <p class="form-control-static col-md-10" id="timeBetween">20 Vehicles/Hr</p>
+                            </div>
+                        </div> 
+                    </div>
+                </div>
+            </div>
+        </info-window>
+    </ng-map>
+</div>
+

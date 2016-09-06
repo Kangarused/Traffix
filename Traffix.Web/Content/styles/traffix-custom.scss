@@ -1,0 +1,76 @@
+﻿@import "../../../Traffix.Common/Content/styles/bootstrap/bootstrap.scss";
+@import "../../../Traffix.Common/Content/styles/theme/_bootswatch.scss"; 
+@import "../../../Traffix.Common/Content/styles/traffix-common.scss";
+
+.vresize {
+    resize: vertical;
+}
+ 
+.hresize {
+    resize: horizontal;
+}
+
+.centered {
+    margin: 0 auto;
+}
+
+body, html { 
+    width: 100%;
+}
+
+ng-map { 
+    display: block;
+    width: 100%;
+}
+
+.map {
+    margin-top: -20px !important;
+    padding: 0 !important;
+}
+
+.popupHeader {
+    font-weight:bold;
+    text-align:center;
+}
+
+.infoPopup p {
+    font-size: 18px;
+    font-weight: 400;
+}
+
+.lowCongestion {
+    background-color: #a5f3ab;
+}
+.lowCongestion .popupHeader {
+    color: #0d8d00;
+}
+
+.moderateCongestion {
+    background-color: #f3d1a5;
+}
+.moderateCongestion .popupHeader {
+    color: #db5200;
+}
+
+.highCongestion {
+    background-color: #f3a5a5;
+}
+.highCongestion .popupHeader {
+    color: #db0000;
+}
+
+
+//Custom Info Window
+.iw-container {
+    max-width: 300px;
+}
+
+.gm-style-iw {
+   width: 300px !important;
+   top: 15px !important; // move the infowindow 15px down
+   left: 0 !important;
+   background-color: #fff;
+   box-shadow: 0 1px 6px rgba(178, 178, 178, 0.6);
+   border: 1px solid rgba(156, 156, 156, 0.6);
+   border-radius: 2px 2px 0 0;
+}
