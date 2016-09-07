@@ -337,6 +337,7 @@
     <TypeScriptCompile Include="App\appValidationRules.ts" />
     <TypeScriptCompile Include="App\appValidationSchemas.ts" />
     <TypeScriptCompile Include="App\controllers\mapsController.ts" />
+    <TypeScriptCompile Include="App\services\colorService.ts" />
     <TypeScriptCompile Include="App\services\signalrDataService.ts" />
     <TypeScriptCompile Include="App\services\trafficDataService.ts" />
     <TypeScriptCompile Include="Scripts\Enums.ts">

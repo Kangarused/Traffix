@@ -3,12 +3,12 @@
      map-lazy-load="https://maps.google.com/maps/api/js"
      map-lazy-load-params="{{vm.googleMapsUrl}}">
 
-    <ng-map id="traffixMap" map-initialized="vm.initMap(map)" center="[{{vm.defaultLat}}, {{vm.defaultLong}}]" style="height: {{vm.height}}px; ">
+    <ng-map id="traffixMap" map-initialized="vm.initMap(map)" center="[{{vm.defaultLat}}, {{vm.defaultLong}}]" style="height: {{vm.height}}px;">
         <custom-marker ng-repeat="p in vm.allMeters track by $index"
                        id="meter-{{p.id}}"
                        on-click="vm.showPopup(event, p)"
                        position="{{[p.latitude, p.longitude]}}">
-            <div>
+            <div style="cursor: pointer;">
                 <img ng-show="p.congestion == 0" src="../../Content/images/markers/greenMarker.png"/>
                 <img ng-show="p.congestion == 1" src="../../Content/images/markers/orangeMarker.png"/>
                 <img ng-show="p.congestion == 2" src="../../Content/images/markers/redMarker.png"/>

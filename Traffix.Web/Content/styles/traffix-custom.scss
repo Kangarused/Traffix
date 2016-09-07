@@ -48,7 +48,7 @@ ng-map {
 .moderateCongestion {
     background-color: #f3d1a5;
 }
-.moderateCongestion .popupHeader {
+.moderateCongestion .popupHeader { 
     color: #db5200;
 }
 
@@ -59,10 +59,9 @@ ng-map {
     color: #db0000;
 }
 
-
 //Custom Info Window
 .iw-container {
-    max-width: 300px;
+    max-width: 300px !important;
 }
 
 .gm-style-iw {

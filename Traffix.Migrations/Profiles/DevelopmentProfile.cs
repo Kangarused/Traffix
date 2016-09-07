@@ -23,7 +23,7 @@ namespace Traffix.Migrations.Profiles
                 Region = "Northern Territory",
                 Latitude = -12.450095,
                 Longitude = 130.922595,
-                Congestion = 2,
+                Congestion = 1,
                 DateActive = DateTime.Now,
                 LinkId = "Tiger Brennan"
             },
@@ -33,9 +33,29 @@ namespace Traffix.Migrations.Profiles
                 Region = "Northern Territory",
                 Latitude = -12.435321,
                 Longitude = 130.897262,
-                Congestion = 1,
+                Congestion = 2,
                 DateActive = DateTime.Now,
                 LinkId = "Tiger Brennan"
+            },
+            new MockTrafficMeter {
+                Id = 3,
+                Name = "Meter 3",
+                Region = "Northern Territory",
+                Latitude = -12.433093,
+                Longitude = 130.922256,
+                Congestion = 2,
+                DateActive = DateTime.Now,
+                LinkId = "Winnelle"
+            },
+            new MockTrafficMeter {
+                Id = 4,
+                Name = "Meter 4",
+                Region = "Northern Territory",
+                Latitude = -12.425249,
+                Longitude = 130.884486,
+                Congestion = 0,
+                DateActive = DateTime.Now,
+                LinkId = "Winnelle"
             }
         }; 
 
@@ -87,7 +107,7 @@ namespace Traffix.Migrations.Profiles
                 for (int x = 0; x < 20; x++)
                 {
                     randomTime = rand.Next(1, 600);
-                    randomSpeed = rand.Next(60, 130);
+                    randomSpeed = rand.Next(50, 130);
                     Insert.IntoTable("TrafficLogs").Row(new
                     {
                         MeterId = meter.Id,

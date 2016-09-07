@@ -34,4 +34,5 @@ var angularApplication = angular.module('traffix',
     ])
     .service('trafficDataService', Traffix.Services.TrafficDataService)
     .service('signalrDataService', Traffix.Services.SignalrDataService)
+    .service('colorService', Traffix.Services.ColorService)
     .controller('mapsController', Traffix.Controllers.MapsController);

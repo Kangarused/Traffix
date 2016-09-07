@@ -1,6 +1,6 @@
 ﻿module Traffix.Controllers {
     export class MapsController {
-        static $inject = ['$scope', '$window', '$rootScope', '$timeout', 'NgMap', 'trafficDataService'];
+        static $inject = ['$scope', '$window', '$rootScope', '$timeout', 'NgMap', 'trafficDataService', 'colorService'];
         googleMapsUrl = "https://maps.googleapis.com/maps/api/js?key=AIzaSyCmq2yT3zYiQ1R6uWcP5mB_R_8WnZeJySQ&callback=initMap";
         defaultLat = -12.4463818;
         defaultLong = 130.9157756;
@@ -14,6 +14,7 @@
         allMeters: Models.ITrafficMeter[] = [];
         meters: Models.ILinkedTrafficMeters[];
         logs: Models.ISortedTrafficLogs[];
+        snappedMeterCounter = 0;
 
         popupInfo = {
             congestion: null,
@@ -24,9 +25,9 @@
         }
 
         colors = {
-            low: '#669900',
-            medium: '#997300',
-            high: '#990000'
+            low: [102, 204, 0],
+            medium: [204, 153, 0],
+            high: [204, 0, 0]
         }
 
         constructor(
@@ -35,7 +36,8 @@
             private $rootScope,
             private $timeout: ng.ITimeoutService,
             private ngMap,
-            private trafficDataService: Services.ITrafficDataService
+            private trafficDataService: Services.ITrafficDataService,
+            private colorService: Services.IColorService
         ) {
             $scope.vm = this;
             this.height = $window.innerHeight - this.headerHeight;
@@ -47,6 +49,19 @@
 
             $scope.$parent.$on('updateMap', (e, region) => {
                 this.updateMap(region);
+            });
+
+            $scope.$watch(() => {return this.snappedMeterCounter}, () => {
+                if (this.snappedMeterCounter != 0) {
+                    if (this.snappedMeterCounter == this.allMeters.length) {
+                        for (var i = 0; i < this.meters.length; i++) {
+                            if (this.meters[i].linkedMeters.length > 1) {
+                                this.displayRouteForMarkers(this.meters[i].linkedMeters[0], this.meters[i].linkedMeters[1]);
+                            }
+                        }
+                        this.snappedMeterCounter = 0;
+                    }  
+                }
             });
         }
 
@@ -93,29 +108,19 @@
                         destination: latlng,
                         travelMode: google.maps.TravelMode.DRIVING
                     };
-                    var lastMeter = (this.meters.length - 1 == i);
-
-                    directionsService.route(request, this.updateMeters(i, x, lastMeter));
+                    directionsService.route(request, this.updateMeters(i, x));
                 }
             }
         }
 
-        updateMeters = (group, index, lastMeter) => {
+        updateMeters = (group, index) => {
             return (response, status) => {
-                if (status == google.maps.DirectionsStatus.OK) {
+                if (status === google.maps.DirectionsStatus.OK) {
                     var pos = response.routes[0].legs[0].start_location;
                     this.meters[group].linkedMeters[index].latitude = pos.lat();
                     this.meters[group].linkedMeters[index].longitude = pos.lng();
-
+                    this.snappedMeterCounter++;
                     this.$scope.$apply();
-
-                    if (lastMeter) {
-                        for (var i = 0; i < this.meters.length; i++) {
-                            if (this.meters[i].linkedMeters.length > 1) {
-                                this.displayRouteForMarkers(this.meters[i].linkedMeters[0], this.meters[i].linkedMeters[1]);
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -136,31 +141,38 @@
 
         drawRoutes(start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
             return (response, status) => {
-                if (status == google.maps.DirectionsStatus.OK) {
+                if (status === google.maps.DirectionsStatus.OK) {
                     var route = response;
 
-                    var half_length = Math.ceil(route.routes[0].overview_path.length / 2);
-                    var startHalf = route.routes[0].overview_path.splice(0, half_length);
-                    startHalf.push(route.routes[0].overview_path[0]);
+                    var pathColor = this.colorService.RGB2Hex(this.getCongestionColor(start.congestion));
+                    var currentColor = this.colorService.RGBtoHSV(this.getCongestionColor(start.congestion));
+                    var endColor = this.colorService.RGBtoHSV(this.getCongestionColor(end.congestion));
 
-                    var snappedPolyline1 = new google.maps.Polyline({
-                        path: startHalf,
-                        strokeColor: this.getCongestionColor(start.congestion),
-                        strokeWeight: 7,
-                        strokeOpacity: 0.5
-                    });
+                    var steps = route.routes[0].overview_path.length;
+                    var increment = this.colorService.calculateIncrement(
+                        currentColor, endColor, steps);
 
-                    var snappedPolyline2 = new google.maps.Polyline({
-                        path: route.routes[0].overview_path,
-                        strokeColor: this.getCongestionColor(end.congestion),
-                        strokeWeight: 7,
-                        strokeOpacity: 0.5
-                    });
+                    for (var i = 0; i < steps; i++) {
+                        var path;
+                        if (i + 1 >= steps) {
+                            path = [route.routes[0].overview_path[i], route.routes[0].overview_path[i]];
+                        } else {
+                            path = [route.routes[0].overview_path[i], route.routes[0].overview_path[i+1]];
+                        }
+                            
+                        var snappedPolyline = new google.maps.Polyline({
+                            path: path,
+                            strokeColor: pathColor,
+                            strokeWeight: 7,
+                            strokeOpacity: 1
+                        });
 
-                    snappedPolyline1.setMap(this.map);
-                    snappedPolyline2.setMap(this.map);
-                    this.polyLines.push(snappedPolyline1);
-                    this.polyLines.push(snappedPolyline2);
+                        snappedPolyline.setMap(this.map);
+                        this.polyLines.push(snappedPolyline);
+                        var transition = this.colorService.transition(currentColor, endColor, increment);
+                        pathColor = transition.hex;
+                        currentColor = transition.color;
+                    }
                 }
             }
         }
@@ -225,6 +237,7 @@
         }
 
         customisePopup() {
+            debugger;
             //Remove Padded Backgrounds
             var iwOuter = $('.gm-style-iw');
             var iwBackground = iwOuter.prev();
@@ -235,8 +248,8 @@
             iwOuter.parent().parent().css({ left: '20px' });
 
             //Move the Arrow
-            iwBackground.children(':nth-child(1)').attr('style', function (i, s) { return s + 'left: 145px !important;' });
-            iwBackground.children(':nth-child(3)').attr('style', function (i, s) { return s + 'left: 145px !important;' });
+            iwBackground.children(':nth-child(1)').attr('style', (i, s) => { return s + 'left: 145px !important;' });
+            iwBackground.children(':nth-child(3)').attr('style', (i, s) => { return s + 'left: 145px !important;' });
             iwBackground.children(':nth-child(3)').find('div').children().css({ 'box-shadow': 'rgba(156, 156, 156, 0.6) 0px 1px 6px', 'z-index': '1' });
 
             var iwCloseBtn = iwOuter.next();
@@ -258,6 +271,7 @@
                 var newTop = (currentTop - 40) + 'px';
                 $('.ng-map-info-window').css('top', newTop);
             }
+            this.$scope.$apply();
         }
     }
 }
