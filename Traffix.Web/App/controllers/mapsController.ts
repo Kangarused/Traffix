@@ -17,6 +17,7 @@
         snappedMeterCounter = 0;
 
         popupInfo = {
+            name: null,
             congestion: null,
             header: null,
             avgSpeed: null,
@@ -56,7 +57,9 @@
                     if (this.snappedMeterCounter == this.allMeters.length) {
                         for (var i = 0; i < this.meters.length; i++) {
                             if (this.meters[i].linkedMeters.length > 1) {
-                                this.displayRouteForMarkers(this.meters[i].linkedMeters[0], this.meters[i].linkedMeters[1]);
+                                for (var x = 1; x < this.meters[i].linkedMeters.length; x++) {
+                                    this.displayRouteForMarkers(this.meters[i].linkedMeters[x - 1], this.meters[i].linkedMeters[x]);
+                                }
                             }
                         }
                         this.snappedMeterCounter = 0;
@@ -189,6 +192,7 @@
         showPopup = (evt, meter: Models.ITrafficMeter) => {
             var id = 'meter-' + meter.id;
 
+            this.popupInfo.name = meter.name;
             this.popupInfo.congestion = meter.congestion;
             this.popupInfo.header = this.getCongestionHeader(meter.congestion);
             this.popupInfo.avgSpeed = this.getAverageSpeed(meter);
@@ -237,32 +241,33 @@
         }
 
         customisePopup() {
-            debugger;
-            //Remove Padded Backgrounds
-            var iwOuter = $('.gm-style-iw');
-            var iwBackground = iwOuter.prev();
-            iwBackground.children(':nth-child(2)').css({ 'display': 'none' });
-            iwBackground.children(':nth-child(4)').css({ 'display': 'none' });
+            if ($('.ng-map-info-window').length) {
+                //Remove Padded Backgrounds
+                var iwOuter = $('.gm-style-iw');
+                var iwBackground = iwOuter.prev();
+                iwBackground.children(':nth-child(2)').css({ 'display': 'none' });
+                iwBackground.children(':nth-child(4)').css({ 'display': 'none' });
 
-            //Reposition Window
-            iwOuter.parent().parent().css({ left: '20px' });
+                //Reposition Window
+                iwOuter.parent().parent().css({ left: '20px' });
 
-            //Move the Arrow
-            iwBackground.children(':nth-child(1)').attr('style', (i, s) => { return s + 'left: 145px !important;' });
-            iwBackground.children(':nth-child(3)').attr('style', (i, s) => { return s + 'left: 145px !important;' });
-            iwBackground.children(':nth-child(3)').find('div').children().css({ 'box-shadow': 'rgba(156, 156, 156, 0.6) 0px 1px 6px', 'z-index': '1' });
+                //Move the Arrow
+                iwBackground.children(':nth-child(1)').attr('style', (i, s) => { return s + 'left: 145px !important;' });
+                iwBackground.children(':nth-child(3)').attr('style', (i, s) => { return s + 'left: 145px !important;' });
+                iwBackground.children(':nth-child(3)').find('div').children().css({ 'box-shadow': 'rgba(156, 156, 156, 0.6) 0px 1px 6px', 'z-index': '1' });
 
-            var iwCloseBtn = iwOuter.next();
-            iwCloseBtn.css({
-                opacity: '1',
-                right: '52px',
-                top: '17px'
-            });
-            iwCloseBtn.mouseout(function () {
-                $(this).css({ opacity: '1' });
-            });
+                var iwCloseBtn = iwOuter.next();
+                iwCloseBtn.css({
+                    opacity: '1',
+                    right: '52px',
+                    top: '17px'
+                });
+                iwCloseBtn.mouseout(function() {
+                    $(this).css({ opacity: '1' });
+                });
 
-            this.adjustPopupPosition();
+                this.adjustPopupPosition();
+            }
         }
 
         adjustPopupPosition() {

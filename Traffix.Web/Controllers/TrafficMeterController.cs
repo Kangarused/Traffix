@@ -38,7 +38,7 @@ namespace Traffix.Web.Controllers
             {
                 list.Add(new LinkedTrafficMeters
                 {
-                    LinkedMeters = meterGroup.ToList()
+                    LinkedMeters = meterGroup.OrderBy(x => x.Name).ToList()
                 });
             }
 
