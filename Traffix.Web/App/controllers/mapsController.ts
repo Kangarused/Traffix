@@ -6,7 +6,7 @@
         defaultLong = 130.9157756;
         defaultZoom = 3;
         headerHeight = 48;
-
+        directionsService;
         map;
         searchBox;
         height: number;
@@ -52,19 +52,11 @@
             $scope.$parent.$on('updateMap', (e, region) => {
                 this.updateMap(region);
             });
-
-            //$scope.$watch(() => {return this.snappedMeterCounter}, () => {
-            //    if (this.snappedMeterCounter != 0) {
-            //        if (this.snappedMeterCounter == this.allMeters.length) {
-                        
-            //            this.snappedMeterCounter = 0;
-            //        }  
-            //    }
-            //});
         }
 
         initMap(map) {
             this.map = map;
+            this.directionsService = new google.maps.DirectionsService();
             this.loadTrafficData("Northern Territory");
 
             //Prevent the map from being zoomed out too much and adjust the popup position
@@ -95,6 +87,7 @@
 
                     var region;
                     for (var i = 0; i < place.address_components.length; i++) {
+                        //Gets the full name of the state/territory at the searched location
                         if (place.address_components[i].types[0] == 'administrative_area_level_1') {
                             region = place.address_components[i].long_name;
                         }
@@ -112,7 +105,6 @@
         }
 
         updateMap(region) {
-
             for (var i = 0; i < this.polyLines.length; i++) {
                 this.polyLines[i].setMap(null);
             }
@@ -171,54 +163,103 @@
                     this.$scope.$apply();
 
                     if (lastMeter) {
-                        //for (var i = 0; i < this.meters.length; i++) {
-                        //    if (this.meters[i].linkedMeters.length > 1) {
-                        //        for (var x = 1; x < this.meters[i].linkedMeters.length; x++) {
-                        //            this.displayRouteForMarkers(this.meters[i].linkedMeters[x - 1], this.meters[i].linkedMeters[x]);
-                        //        }
-                        //    }
-                        //}
-                        this.displayRouteForMarkers(this.meters[i].linkedMeters[x - 1], this.meters[i].linkedMeters[x]);
+                        this.displayRouteForMarkers(0, this.meters[0].linkedMeters[0], this.meters[0].linkedMeters[this.meters[0].linkedMeters.length - 1]);
                     }
                 }
             }
         }
 
-        displayRouteForMarkers(group, meter, start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
-            var directionsService = new google.maps.DirectionsService();
-            var startPoint = { lat: start.latitude, lng: start.longitude };
-            var endPoint = { lat: end.latitude, lng: end.longitude };
+        displayRouteForMarkers(group, start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
+            if (this.meters[group].linkedMeters.length > 1) {
+                
+                var startPoint = { lat: start.latitude, lng: start.longitude };
+                var endPoint = { lat: end.latitude, lng: end.longitude };
+                var wayPoints = [];
+                var request;
 
-            var request = {
-                origin: startPoint,
-                destination: endPoint,
-                travelMode: google.maps.TravelMode.DRIVING
+                if (this.meters[group].linkedMeters.length > 2) {
+                    for (var i = 1; i < this.meters[group].linkedMeters.length - 1; i++) {
+                        wayPoints.push({
+                            location: { lat: this.meters[group].linkedMeters[i].latitude, lng: this.meters[group].linkedMeters[i].longitude },
+                            stopover: true
+                        });
+                    }
+                    request = {
+                        origin: startPoint,
+                        destination: endPoint,
+                        waypoints: wayPoints,
+                        travelMode: google.maps.TravelMode.DRIVING
+                    }
+                    this.directionsService.route(request, this.loadRoutes(group, true, start, end));
+                } else {
+                    request = {
+                        origin: startPoint,
+                        destination: endPoint,
+                        travelMode: google.maps.TravelMode.DRIVING
+                    }
+                    this.directionsService.route(request, this.loadRoutes(group, false, start, end));
+                }
+            } else {
+                if (group < this.meters.length) {
+                    group++;
+                    this.displayRouteForMarkers(group, this.meters[group].linkedMeters[0], this.meters[group].linkedMeters[1]);
+                }
             }
-
-            directionsService.route(request, this.drawRoutes(group, meter, start, end));
         }
 
-        drawRoutes(group, meter, start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
+        loadRoutes(group, hasWayPoints: boolean, start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
             return (response, status) => {
                 if (status === google.maps.DirectionsStatus.OK) {
                     var route = response;
+                    if (hasWayPoints) {
+                        this.drawWaypointRoutes(route, group);
+                    } else {
+                        this.drawSingleRoute(route, group);
+                    }
+                }
+            }
+        }
 
-                    var pathColor = this.colorService.RGB2Hex(this.getCongestionColor(start.congestion));
-                    var currentColor = this.colorService.RGBtoHSV(this.getCongestionColor(start.congestion));
-                    var endColor = this.colorService.RGBtoHSV(this.getCongestionColor(end.congestion));
+        drawWaypointRoutes(route, group) {
+            var points = route.routes[0].legs.length;
+            var currentMeter = 1;
+            for (var i = 0; i < points; i++) {
+                var pathColor = this.colorService.RGB2Hex(this.getCongestionColor(this.meters[group].linkedMeters[currentMeter-1].congestion));
+                var currentColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.meters[group].linkedMeters[currentMeter - 1].congestion));
+                var endColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.meters[group].linkedMeters[currentMeter].congestion));
 
-                    var steps = route.routes[0].overview_path.length;
-                    var increment = this.colorService.calculateIncrement(
-                        currentColor, endColor, steps);
+                var steps = route.routes[0].legs[i].steps[0].path.length;
+                var increment = this.colorService.calculateIncrement(currentColor, endColor, steps);
+                this.drawPath(route.routes[0].legs[i].steps[0].path, steps, increment, pathColor, currentColor, endColor);
+                currentMeter++;
+            }
+            this.loadNextRoute(group);
+        }
 
+        drawSingleRoute(route, group) {
+            var pathColor = this.colorService.RGB2Hex(this.getCongestionColor(this.meters[group].linkedMeters[0].congestion));
+            var currentColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.meters[group].linkedMeters[0].congestion));
+            var endColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.meters[group].linkedMeters[1].congestion));
+
+            var steps = route.routes[0].overview_path.length;
+            var increment = this.colorService.calculateIncrement(currentColor, endColor, steps);
+            this.drawPath(route.routes[0].overview_path, steps, increment, pathColor, currentColor, endColor).then(
+            (resposne) => {
+                this.loadNextRoute(group);
+            });
+        }
+
+        drawPath(pathComponents, steps, increment, pathColor, currentColor, endColor) {
+            return new Promise((resolve, reject) => {
+                if (pathComponents != null) {
                     for (var i = 0; i < steps; i++) {
                         var path;
                         if (i + 1 >= steps) {
-                            path = [route.routes[0].overview_path[i], route.routes[0].overview_path[i]];
+                            path = [pathComponents[i], pathComponents[i]];
                         } else {
-                            path = [route.routes[0].overview_path[i], route.routes[0].overview_path[i+1]];
+                            path = [pathComponents[i], pathComponents[i + 1]];
                         }
-                            
+
                         var snappedPolyline = new google.maps.Polyline({
                             path: path,
                             strokeColor: pathColor,
@@ -231,23 +272,22 @@
                         var transition = this.colorService.transition(currentColor, endColor, increment);
                         pathColor = transition.hex;
                         currentColor = transition.color;
-
-                        meter++;
-
-                        if (meter >= this.meters[group].linkedMeters.length) {
-                            if (group < this.meters.length) {
-                                group++;
-                            } else {
-                                group = null;
-                            }
-                            meter = 1;
-                        }
-
-                        if (group != null) {
-                            this.displayRouteForMarkers(group, meter, this.meters[group].linkedMeters[meter - 1], this.meters[group].linkedMeters[meter]);
-                        }
+                        resolve();
                     }
+                } else {
+                    reject(Error("Path Components is Undefined"));
                 }
+            });
+        }
+
+        loadNextRoute(group: number) {
+            group++;
+
+            if (group < this.meters.length) {
+                //Using timeout to delay the call because Google Maps API can't keep up
+                this.$timeout(() => {
+                    this.displayRouteForMarkers(group, this.meters[group].linkedMeters[0], this.meters[group].linkedMeters[this.meters[group].linkedMeters.length - 1]);
+                }, 1000);
             }
         }
 

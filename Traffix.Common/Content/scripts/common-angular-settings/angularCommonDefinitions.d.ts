@@ -4,6 +4,7 @@
 /// <reference path="../angular-ui-router/angular-ui-router.d.ts" />
 /// <reference path="../signalr/signalr.d.ts"/>
 /// <reference path="../google-maps/google.maps.d.ts"/>
+/// <reference path="../es6-promise/es6-promise.d.ts"/>
 
 //global vars and functions
  

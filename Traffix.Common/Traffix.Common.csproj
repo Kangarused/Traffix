@@ -367,6 +367,7 @@
     <TypeScriptCompile Include="Content\scripts\common-angular-settings\angularCommonInitSettings.ts" />
     <EmbeddedResource Include="Content\scripts\custom-angular\ng-include-replace.ts" />
     <EmbeddedResource Include="Content\scripts\custom-angular\track-changes.ts" />
+    <TypeScriptCompile Include="Content\scripts\es6-promise\es6-promise.d.ts" />
     <TypeScriptCompile Include="Content\scripts\google-maps\google.maps.d.ts" />
     <TypeScriptCompile Include="Content\scripts\linqjs\linq.d.ts" />
     <TypeScriptCompile Include="Content\scripts\moment\moment-node.d.ts" />
