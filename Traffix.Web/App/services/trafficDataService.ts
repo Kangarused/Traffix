@@ -1,8 +1,8 @@
 ﻿module Traffix.Services {
     export interface ITrafficDataService {
         //Traffic Meters
-        getTrafficMeters(): ng.IHttpPromise<Models.ITrafficMeter[]>;
-        getLinkedTrafficMeters(): ng.IHttpPromise<Models.ILinkedTrafficMeters[]>;
+        getTrafficMeters(region: string): ng.IHttpPromise<Models.ITrafficMeter[]>;
+        getLinkedTrafficMeters(region: string): ng.IHttpPromise<Models.ILinkedTrafficMeters[]>;
 
         //Traffic Logs
         getTrafficLogsForMeter(meterId: number): ng.IHttpPromise<Models.ITrafficLog[]>;
@@ -15,12 +15,12 @@
         constructor(private $http: ng.IHttpService) {}
 
         //Traffic Meters
-        getTrafficMeters(): ng.IHttpPromise<Models.ITrafficMeter[]> {
-            return this.$http.get("/api/TrafficMeter/GetTrafficMeters");
+        getTrafficMeters(region: string): ng.IHttpPromise<Models.ITrafficMeter[]> {
+            return this.$http.get("/api/TrafficMeter/GetTrafficMeters/" + region);
         }
 
-        getLinkedTrafficMeters(): ng.IHttpPromise<Models.ILinkedTrafficMeters[]> {
-            return this.$http.get("/api/TrafficMeter/GetLinkedTrafficMeters");
+        getLinkedTrafficMeters(region: string): ng.IHttpPromise<Models.ILinkedTrafficMeters[]> {
+            return this.$http.get("/api/TrafficMeter/GetLinkedTrafficMeters/" + region);
         }
 
         //Traffic Logs

@@ -16,6 +16,7 @@ namespace Traffix.Web.Database.Repositories
     public interface ITrafficMeterRepository : IAbstractRepository<TrafficMeter>
     {
         Task<List<TrafficMeter>> GetAllOrderByLinkId();
+        Task<List<TrafficMeter>> GetMetersForRegion(string region);
     }
 
     [PerRequest]
@@ -29,6 +30,13 @@ namespace Traffix.Web.Database.Repositories
         {
             var results = await GetAllAsync();
             return results.OrderBy(x => x.LinkId).ToList();
+        }
+
+        public async Task<List<TrafficMeter>> GetMetersForRegion(string region)
+        {
+            var query = Db.From<TrafficMeter>().Where(x => x.Region == region);
+            var results = await Db.LoadSelectAsync(query);
+            return results;
         }
     }
 }

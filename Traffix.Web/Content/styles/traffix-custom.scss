@@ -73,3 +73,27 @@ ng-map {
    border: 1px solid rgba(156, 156, 156, 0.6);
    border-radius: 2px 2px 0 0;
 }
+
+
+//Search Box
+
+#traffixSearchBoxContainer {
+    float:right;
+}
+
+#traffixSearchBox {
+    height: 34px !important;
+    max-width: 400px;
+    float: right;
+    margin-top: 5px !important;
+    margin-bottom: 5px !important;
+}
+
+@media screen and (max-width: 340px) {
+    #traffixSearchBox {
+        float: none;
+    }
+    #traffixSearchBoxContainer {
+        float: none;
+    }
+}

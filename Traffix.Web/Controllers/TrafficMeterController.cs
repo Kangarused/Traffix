@@ -22,16 +22,16 @@ namespace Traffix.Web.Controllers
         }
 
         [AcceptVerbs("GET")]
-        public async Task<List<TrafficMeter>> GetTrafficMeters()
+        public async Task<List<TrafficMeter>> GetTrafficMeters(string param)
         {
-            var results = await _trafficMeterRepoistory.GetAllAsync();
+            var results = await _trafficMeterRepoistory.GetMetersForRegion(param);
             return results;
         }
 
         [AcceptVerbs("GET")]
-        public async Task<List<LinkedTrafficMeters>> GetLinkedTrafficMeters()
+        public async Task<List<LinkedTrafficMeters>> GetLinkedTrafficMeters(string param)
         {
-            var results = await _trafficMeterRepoistory.GetAllAsync();
+            var results = await _trafficMeterRepoistory.GetMetersForRegion(param);
             List<LinkedTrafficMeters> list = new List<LinkedTrafficMeters>();
 
             foreach (var meterGroup in results.GroupBy(x => x.LinkId))

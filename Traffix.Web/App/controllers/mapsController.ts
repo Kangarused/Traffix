@@ -1,13 +1,14 @@
 ﻿module Traffix.Controllers {
     export class MapsController {
         static $inject = ['$scope', '$window', '$rootScope', '$timeout', 'NgMap', 'trafficDataService', 'colorService'];
-        googleMapsUrl = "https://maps.googleapis.com/maps/api/js?key=AIzaSyCmq2yT3zYiQ1R6uWcP5mB_R_8WnZeJySQ&callback=initMap";
+        googleMapsUrl = "https://maps.googleapis.com/maps/api/js?key=AIzaSyCmq2yT3zYiQ1R6uWcP5mB_R_8WnZeJySQ&libraries=places&callback=initMap";
         defaultLat = -12.4463818;
         defaultLong = 130.9157756;
         defaultZoom = 3;
         headerHeight = 48;
 
         map;
+        searchBox;
         height: number;
         polyLines = [];
 
@@ -52,37 +53,78 @@
                 this.updateMap(region);
             });
 
-            $scope.$watch(() => {return this.snappedMeterCounter}, () => {
-                if (this.snappedMeterCounter != 0) {
-                    if (this.snappedMeterCounter == this.allMeters.length) {
-                        for (var i = 0; i < this.meters.length; i++) {
-                            if (this.meters[i].linkedMeters.length > 1) {
-                                for (var x = 1; x < this.meters[i].linkedMeters.length; x++) {
-                                    this.displayRouteForMarkers(this.meters[i].linkedMeters[x - 1], this.meters[i].linkedMeters[x]);
-                                }
-                            }
-                        }
-                        this.snappedMeterCounter = 0;
-                    }  
-                }
-            });
+            //$scope.$watch(() => {return this.snappedMeterCounter}, () => {
+            //    if (this.snappedMeterCounter != 0) {
+            //        if (this.snappedMeterCounter == this.allMeters.length) {
+                        
+            //            this.snappedMeterCounter = 0;
+            //        }  
+            //    }
+            //});
         }
 
         initMap(map) {
             this.map = map;
-            this.loadTrafficData();
+            this.loadTrafficData("Northern Territory");
 
+            //Prevent the map from being zoomed out too much and adjust the popup position
             this.map.addListener('zoom_changed', () => {
+                if (this.map.getZoom() < 13) {
+                    this.map.setZoom(13);
+                }
                 this.adjustPopupPosition();
+            });
+
+            //Get Searcbox input and use it to create a searchbox control
+            var input = <HTMLInputElement>document.getElementById('traffixSearchBox');
+            this.searchBox = new google.maps.places.SearchBox(input);
+
+            //Updates the searchbox bounds which helps generate suggestions faster
+            this.map.addListener('bounds_changed', () => {
+                this.searchBox.setBounds(this.map.getBounds());
+            });
+
+            //Attach listener to the searchbox that will update the map position on search
+            google.maps.event.addListener(this.searchBox, 'places_changed', () => {
+                var places = this.searchBox.getPlaces();
+                if (places.length == 0) {
+                    return;
+                }
+                var bounds = new google.maps.LatLngBounds();
+                places.forEach((place) => {
+
+                    var region;
+                    for (var i = 0; i < place.address_components.length; i++) {
+                        if (place.address_components[i].types[0] == 'administrative_area_level_1') {
+                            region = place.address_components[i].long_name;
+                        }
+                    }
+
+                    this.updateMap(region);
+                    if (place.geometry.viewport) {
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.extend(place.geometry.location);
+                    }
+                });
+                this.map.fitBounds(bounds);
             });
         }
 
         updateMap(region) {
-            //todo: update map if region matches current region
+
+            for (var i = 0; i < this.polyLines.length; i++) {
+                this.polyLines[i].setMap(null);
+            }
+            this.polyLines = [];
+            this.allMeters.length = 0;
+            this.meters.length = 0;
+            this.logs.length = 0;
+            this.loadTrafficData(region);
         }
 
-        loadTrafficData() {
-        this.trafficDataService.getLinkedTrafficMeters().then(
+        loadTrafficData(region) {
+            this.trafficDataService.getLinkedTrafficMeters(region).then(
             (response) => {
                 this.meters = response.data;
                 var list = {meterIds: []};
@@ -111,12 +153,15 @@
                         destination: latlng,
                         travelMode: google.maps.TravelMode.DRIVING
                     };
-                    directionsService.route(request, this.updateMeters(i, x));
+
+                    var lastMeter = (i === this.meters.length - 1);
+
+                    directionsService.route(request, this.updateMeters(i, x, lastMeter));
                 }
             }
         }
 
-        updateMeters = (group, index) => {
+        updateMeters = (group, index, lastMeter: boolean) => {
             return (response, status) => {
                 if (status === google.maps.DirectionsStatus.OK) {
                     var pos = response.routes[0].legs[0].start_location;
@@ -124,11 +169,22 @@
                     this.meters[group].linkedMeters[index].longitude = pos.lng();
                     this.snappedMeterCounter++;
                     this.$scope.$apply();
+
+                    if (lastMeter) {
+                        //for (var i = 0; i < this.meters.length; i++) {
+                        //    if (this.meters[i].linkedMeters.length > 1) {
+                        //        for (var x = 1; x < this.meters[i].linkedMeters.length; x++) {
+                        //            this.displayRouteForMarkers(this.meters[i].linkedMeters[x - 1], this.meters[i].linkedMeters[x]);
+                        //        }
+                        //    }
+                        //}
+                        this.displayRouteForMarkers(this.meters[i].linkedMeters[x - 1], this.meters[i].linkedMeters[x]);
+                    }
                 }
             }
         }
 
-        displayRouteForMarkers(start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
+        displayRouteForMarkers(group, meter, start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
             var directionsService = new google.maps.DirectionsService();
             var startPoint = { lat: start.latitude, lng: start.longitude };
             var endPoint = { lat: end.latitude, lng: end.longitude };
@@ -139,10 +195,10 @@
                 travelMode: google.maps.TravelMode.DRIVING
             }
 
-            directionsService.route(request, this.drawRoutes(start, end));
+            directionsService.route(request, this.drawRoutes(group, meter, start, end));
         }
 
-        drawRoutes(start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
+        drawRoutes(group, meter, start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
             return (response, status) => {
                 if (status === google.maps.DirectionsStatus.OK) {
                     var route = response;
@@ -175,6 +231,21 @@
                         var transition = this.colorService.transition(currentColor, endColor, increment);
                         pathColor = transition.hex;
                         currentColor = transition.color;
+
+                        meter++;
+
+                        if (meter >= this.meters[group].linkedMeters.length) {
+                            if (group < this.meters.length) {
+                                group++;
+                            } else {
+                                group = null;
+                            }
+                            meter = 1;
+                        }
+
+                        if (group != null) {
+                            this.displayRouteForMarkers(group, meter, this.meters[group].linkedMeters[meter - 1], this.meters[group].linkedMeters[meter]);
+                        }
                     }
                 }
             }

@@ -9,7 +9,8 @@
 <head>
     <title>Traffix</title>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
     <meta name="author" content="Robert Jackson" />
     <meta name="description" content="Website that displays traffic congestion in near real-time" />
     <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon" />
@@ -25,10 +26,17 @@
 <body ng-app="traffix">
     <nav class="navbar navbar-inverse" role="navigation">
         <div class="container-fluid">
-            <div class="navbar-header">
-                <a class="navbar-brand" style="cursor: pointer;" ui-sref="dashboard">
-                    <span class="fa fa-car"></span> Traffix
-                </a>
+            <div class="navbar-header col-sm-12">
+                <div class="row">
+                    <div class="col-sm-6" style="min-width: 100px; max-width: 200px;">
+                        <a class="navbar-brand" style="cursor: pointer;" ui-sref="dashboard">
+                            <span class="fa fa-car"></span> Traffix
+                        </a>
+                    </div>
+                    <div id="traffixSearchBoxContainer" class="col-sm-6">
+                        <input id="traffixSearchBox" type="text" class="form-control" placeholder="Search Google Maps"/>
+                    </div>
+                </div>
             </div>
         </div>
     </nav>
