@@ -1,28 +1,36 @@
 ﻿module Traffix.Services {
-    export class SignalrDataService {
-        static $inject = ['$', '$rootScope'];
 
-        constructor(private $: JQueryStatic, $rootScope: ng.IRootScopeService) {
+    export interface ISignalrDataService {
+        connect();
+        isConnecting(): boolean;
+        isConnected(): boolean;
+        connectionState();
+    }
 
-            // creates a new hub connection
-            var connection = $.hubConnection("/signalr", { useDefaultPath: false });
+    export class SignalrDataService implements ISignalrDataService {
+        static $inject = ['$rootScope'];
 
-            // enabled logging to see in browser dev tools what SignalR is doing behind the scenes
-            connection.logging = true;
+        connection = null;
+        proxy = null;
 
-            // create a proxy
-            this.proxy = connection.createHubProxy('trafficHub');
-            this.proxy.connection.logging = true;
+        constructor(private $rootScope) {
 
-            // start connection
-            connection.start();
-
-            // publish an event when server pushes a newCounters message for client
-            this.proxy.on('updateMap', region => {
-                $rootScope.$emit('updateMap', region);
-            });
         }
 
-        proxy: SignalR.Hub.Proxy;
+        connect() {
+            
+        }
+
+        isConnecting(): boolean {
+            return this.connection.state === 0;
+        }
+
+        isConnected(): boolean {
+            return this.connection.state === 1;
+        }
+
+        connectionState() {
+            return this.connection.state;
+        }
     }
 } 

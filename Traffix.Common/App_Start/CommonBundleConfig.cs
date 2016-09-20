@@ -30,6 +30,7 @@ namespace Traffix.Common
             BundleTable.Bundles.Add(new ScriptBundle(SiteCommonScripts)
                 .Include(
                     "~/TraffixCommon/Embedded/scripts/jquery/jquery-1.11.3.js",
+                    "~/TraffixCommon/Embedded/scripts/signalr/jquery.signalR-2.2.1.js",
                     "~/TraffixCommon/Embedded/scripts/angular/angular.js",
                     "~/TraffixCommon/Embedded/scripts/angular-case/angular-case.js",
                     "~/TraffixCommon/Embedded/scripts/angular-permission/angular-permission.js",
@@ -47,7 +48,6 @@ namespace Traffix.Common
                     "~/TraffixCommon/Embedded/scripts/custom-angular/track-changes.js",
                     "~/TraffixCommon/Embedded/scripts/custom-angular/ng-include-replace.js",
                     "~/TraffixCommon/Embedded/scripts/ng-map/ng-map.min.js",
-                    "~/TraffixCommon/Embedded/scripts/signalr/jquery.signalR-2.2.1.js",
 
                     "~/TraffixCommon/Embedded/scripts/moment/moment.js",
                     "~/TraffixCommon/Embedded/scripts/linqjs/linq.js",

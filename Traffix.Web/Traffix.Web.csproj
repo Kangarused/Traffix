@@ -27,6 +27,7 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <TypeScriptToolsVersion>1.8</TypeScriptToolsVersion>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -36,6 +37,11 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <TypeScriptTarget>ES3</TypeScriptTarget>
+    <TypeScriptOutFile />
+    <TypeScriptOutDir />
+    <TypeScriptMapRoot />
+    <TypeScriptSourceRoot />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -44,6 +50,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Antlr3.Runtime, Version=3.5.0.2, Culture=neutral, PublicKeyToken=eb42632606e9261f, processorArchitecture=MSIL">
@@ -155,6 +162,7 @@
       <HintPath>..\packages\ServiceStack.Text.4.0.60\lib\net40\ServiceStack.Text.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Device" />
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Net.Http.WebRequest" />
@@ -164,8 +172,6 @@
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Web.Helpers, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.Helpers.dll</HintPath>
@@ -199,13 +205,13 @@
       <HintPath>..\packages\Microsoft.AspNet.WebPages.3.2.3\lib\net45\System.Web.WebPages.Razor.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Web" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Web.Services" />
     <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Xml.Linq" />
     <Reference Include="WebGrease, Version=1.6.5135.21930, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
       <HintPath>..\packages\WebGrease.1.6.0\lib\WebGrease.dll</HintPath>
     </Reference>
@@ -234,6 +240,18 @@
     </Content>
     <Content Include="App\appValidationSchemas.js">
       <DependentUpon>appValidationSchemas.ts</DependentUpon>
+    </Content>
+    <Content Include="App\controllers\mapsController.js">
+      <DependentUpon>mapsController.ts</DependentUpon>
+    </Content>
+    <Content Include="App\services\colorService.js">
+      <DependentUpon>colorService.ts</DependentUpon>
+    </Content>
+    <Content Include="App\services\signalrDataService.js">
+      <DependentUpon>signalrDataService.ts</DependentUpon>
+    </Content>
+    <Content Include="App\services\trafficDataService.js">
+      <DependentUpon>trafficDataService.ts</DependentUpon>
     </Content>
     <Content Include="App\views\maps.html" />
     <Content Include="Content\images\loading-animation.gif" />
@@ -276,6 +294,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\TrafficLogController.cs" />
     <Compile Include="Controllers\TrafficMeterController.cs" />
+    <Compile Include="Controllers\UpdateController.cs" />
     <Compile Include="Database\DatabaseOperationType.cs" />
     <Compile Include="Database\OrmLiteInfrastructure\AbstractReader.cs" />
     <Compile Include="Database\OrmLiteInfrastructure\AbstractRepository.cs" />
@@ -290,6 +309,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\DatabaseVersionReader.cs" />
     <Compile Include="Providers\HttpContextProvider.cs" />
+    <Compile Include="Providers\TraffixUpdateProvider.cs" />
     <Compile Include="WebApiFilters\CustomBinaryFormatter.cs" />
     <Compile Include="WebApiFilters\InternalApiAuthorize.cs" />
     <Compile Include="WebApiFilters\TransactionFilter.cs" />
@@ -312,6 +332,20 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\web.config" />
     <Content Include="compilerconfig.json" />
+    <Content Include="App\services\signalrDataService.js.map">
+      <DependentUpon>signalrDataService.ts</DependentUpon>
+    </Content>
+    <Content Include="App\services\trafficDataService.js.map">
+      <DependentUpon>trafficDataService.ts</DependentUpon>
+    </Content>
+    <Content Include="App\services\colorService.js.map">
+      <DependentUpon>colorService.ts</DependentUpon>
+    </Content>
+    <Content Include="App\controllers\mapsController.js.map">
+      <DependentUpon>mapsController.ts</DependentUpon>
+    </Content>
+    <None Include="Properties\PublishProfiles\dev.traffix-map.com.pubxml" />
+    <None Include="Properties\PublishProfiles\HostGator.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -357,6 +391,9 @@
       <Name>Traffix.Common</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
@@ -390,6 +427,7 @@
     <TypeScriptSourceMap>True</TypeScriptSourceMap>
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Test|AnyCPU'">
     <TypeScriptTarget>ES5</TypeScriptTarget>
@@ -405,6 +443,7 @@
     <TypeScriptSourceMap>True</TypeScriptSourceMap>
     <TypeScriptMapRoot />
     <TypeScriptSourceRoot />
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />

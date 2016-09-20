@@ -6,6 +6,8 @@
         defaultLong = 130.9157756;
         defaultZoom = 3;
         headerHeight = 48;
+        traffixHub = null;
+        traffixProxy = null;
         directionsService;
         map;
         searchBox;
@@ -49,9 +51,52 @@
                 $scope.$apply();
             });
 
-            $scope.$parent.$on('updateMap', (e, region) => {
-                this.updateMap(region);
+            //Setup web-socket connection using Signalr
+            this.traffixHub = $.hubConnection();
+            this.traffixHub.logging = true;
+            this.traffixProxy = this.traffixHub.createHubProxy('trafficHub');
+            this.traffixProxy.logging = true;
+            this.traffixProxy.on('meterUpdated', (event, meter, log) => {
+                //Converting from uppercase notation to lowercase notation due to signalr passing the C# class
+                var convertMeter = { id: meter.Id, name: meter.Name, congestion: meter.Congestion };
+                var convertLog = {
+                    id: log.Id,
+                    meterId: log.MeterId,
+                    time: log.Time,
+                    speed: log.Speed
+                };
+                this.updateMeter(convertMeter, convertLog);
             });
+            this.traffixHub.start();
+        }
+
+        updateMeter(meter, log) {
+            var markerId = "meter-" + meter.id;
+            var curMeter = Enumerable.From(this.allMeters).FirstOrDefault(null, x => x.id === meter.id);
+            if (curMeter != null) {
+                var meterIndex = this.allMeters.indexOf(curMeter);
+                this.allMeters[meterIndex].congestion = meter.congestion;
+
+                var curLog = Enumerable.From(this.logs).FirstOrDefault(null, x => x.meterId === meter.id);
+                if (curLog != null) {
+                    var logIndex = this.logs.indexOf(curLog);
+                    this.logs[logIndex].logs.push(log);
+                }
+            }
+
+            if ($('.ng-map-info-window').length) {
+                if (this.popupInfo.name === meter.name) {
+                    this.updatePopupInfo(meter);
+                    this.$scope.$apply();
+                }
+            }
+            
+
+            //var marker = this.map.customMarkers[markerId];
+            //marker.setOptions({ animation: "BOUNCE" });
+            //this.$timeout(() => {
+            //    marker.setOptions({ animation: null });
+            //}, 1000);
         }
 
         initMap(map) {
@@ -302,14 +347,16 @@
 
         showPopup = (evt, meter: Models.ITrafficMeter) => {
             var id = 'meter-' + meter.id;
+            this.updatePopupInfo(meter);
+            this.map.showInfoWindow('popup', id);
+        }
 
+        updatePopupInfo(meter) {
             this.popupInfo.name = meter.name;
             this.popupInfo.congestion = meter.congestion;
             this.popupInfo.header = this.getCongestionHeader(meter.congestion);
             this.popupInfo.avgSpeed = this.getAverageSpeed(meter);
             this.popupInfo.totalVehicles = this.getTotalVehicles(meter);
-
-            this.map.showInfoWindow('popup', id);
         }
 
         getCongestionClass() {
@@ -335,20 +382,24 @@
             return 'Meter Statistics';
         }
 
-        getAverageSpeed(meter: Models.ITrafficMeter) {
-            var meterLogs = Enumerable.From(this.logs).First((x) => x.meterId == meter.id);
-            var avgSpeed = 0;
-            for (var i = 0; i < meterLogs.logs.length; i++) {
-                avgSpeed += meterLogs.logs[i].speed;
+        getAverageSpeed(meter) {
+            var meterLogs = Enumerable.From(this.logs).FirstOrDefault(null, (x) => x.meterId === meter.id);
+            if (meterLogs != null) {
+                var avgSpeed = 0;
+                for (var i = 0; i < meterLogs.logs.length; i++) {
+                    avgSpeed += meterLogs.logs[i].speed;
+                }
+                avgSpeed = +((avgSpeed / meterLogs.logs.length).toFixed(2));
+                return avgSpeed;
             }
-            avgSpeed = avgSpeed / meterLogs.logs.length;
-            return avgSpeed;
         }
 
-        getTotalVehicles(meter: Models.ITrafficMeter) {
-            var meterLogs = Enumerable.From(this.logs).First((x) => x.meterId == meter.id);
-            var totalVehicles = meterLogs.logs.length;
-            return totalVehicles;
+        getTotalVehicles(meter) {
+            var meterLogs = Enumerable.From(this.logs).FirstOrDefault(null, (x) => x.meterId === meter.id);
+            if (meterLogs != null) {
+                var totalVehicles = meterLogs.logs.length;
+                return totalVehicles;  
+            }
         }
 
         customisePopup() {
@@ -358,9 +409,6 @@
                 var iwBackground = iwOuter.prev();
                 iwBackground.children(':nth-child(2)').css({ 'display': 'none' });
                 iwBackground.children(':nth-child(4)').css({ 'display': 'none' });
-
-                //Reposition Window
-                iwOuter.parent().parent().css({ left: '20px' });
 
                 //Move the Arrow
                 iwBackground.children(':nth-child(1)').attr('style', (i, s) => { return s + 'left: 145px !important;' });
@@ -386,6 +434,10 @@
                 var currentTop = $('.ng-map-info-window').position().top;
                 var newTop = (currentTop - 40) + 'px';
                 $('.ng-map-info-window').css('top', newTop);
+
+                var currentLeft = $('.ng-map-info-window').position().left;
+                var newLeft = (currentLeft + 20) + 'px';
+                $('.ng-map-info-window').css('left', newLeft);
             }
             this.$scope.$apply();
         }

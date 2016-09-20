@@ -18,8 +18,7 @@ namespace Traffix.Web
         {
             var config = new HttpConfiguration();
 
-            app.MapSignalR();
-
+            
             AreaRegistration.RegisterAllAreas();
             log4net.Config.XmlConfigurator.Configure();
             
@@ -34,6 +33,9 @@ namespace Traffix.Web
             WebApiConfig.Register(config, container);
             
             app.UseWebApi(config);
+
+            app.MapSignalR();
+
 
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             CommonRouteConfig.RegisterRoutes(RouteTable.Routes);
