@@ -29,6 +29,35 @@ namespace Traffix.Web.Controllers
         }
 
         [AcceptVerbs("GET")]
+        public async Task<string> InsertLogForAllMeters()
+        {
+            var meters = await _trafficMeterRepoistory.GetAllAsync();
+
+            if (meters != null)
+            {
+                foreach (var meter in meters)
+                {
+                    if (meter != null)
+                    {
+                        Random rand = new Random();
+
+                        TrafficLog newLog = new TrafficLog();
+                        newLog.MeterId = meter.Id;
+                        newLog.Time = DateTime.Now;
+                        newLog.Speed = rand.Next(40, 130);
+
+                        await _trafficLogRepoistory.InsertAsync(newLog);
+
+                        _traffixUpdateProvider.MeterUpdated(meter.Region, meter, newLog);
+                    }
+                }
+                return "LOGS ADDED";
+            }
+                        
+            return "METER DOES NOT EXIST";
+        }
+
+        [AcceptVerbs("GET")]
         public async Task<string> InsertLogForMeter(int param)
         {
             var meter = await _trafficMeterRepoistory.GetByIdAsync(param);

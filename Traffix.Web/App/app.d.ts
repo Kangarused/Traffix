@@ -2,7 +2,7 @@
 
 
 declare module Traffix.Models {
-
+    
 }
 
 declare module Traffix.Services {

@@ -4,19 +4,55 @@
      map-lazy-load-params="{{vm.googleMapsUrl}}">
 
     <ng-map id="traffixMap" map-initialized="vm.initMap(map)" center="[{{vm.defaultLat}}, {{vm.defaultLong}}]" style="height: {{vm.height}}px;">
-        <custom-marker ng-repeat="p in vm.allMeters track by $index"
-                       id="meter-{{p.id}}"
-                       on-click="vm.showPopup(event, p)"
-                       position="{{[p.latitude, p.longitude]}}">
-            <div style="cursor: pointer;">
-                <img ng-show="p.congestion == 0" src="../../Content/images/markers/greenMarker.png"/>
-                <img ng-show="p.congestion == 1" src="../../Content/images/markers/orangeMarker.png"/>
-                <img ng-show="p.congestion == 2" src="../../Content/images/markers/redMarker.png"/>
+
+        <marker id="meter-{{p.id}}"
+                position="{{[p.latitude, p.longitude]}}"
+                ng-repeat="p in vm.allMeters track by $index"
+                on-click="vm.showPopup(event, p)"
+                icon="{{vm.getMarkerIcon(p.congestion)}}"
+                animation="{{p.animation}}">
+        </marker>
+
+        <custom-marker id="customPopup" position="-12.450095, 130.922595" visible="false">
+            <div class="form-horizontal infoPopup">
+                <div class="col-xs-12" ng-class="vm.getCongestionClass()">
+                    <h4 class="popupHeader">{{vm.popupInfo.header}}</h4>
+                </div>
+                <div>
+                    <div style="padding-top: 15px;" class="col-xs-12">
+                        <div class="form-group">
+                            <label for="avgSpeed" class="col-xs-2 form-control-static">
+                                <img src="../../Content/images/popup/speedMeter.png"/>
+                            </label>
+                            <p class="form-control-static col-xs-10" id="avgSpeed">{{vm.popupInfo.avgSpeed}} Km/Hr Average</p>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <label for="totalVehicles" class="col-xs-2 form-control-static">
+                                <img src="../../Content/images/popup/car.png"/>
+                            </label>
+                            <p class="form-control-static col-xs-10" id="totalVehicles">{{vm.popupInfo.totalVehicles}} Vehicles Today</p>
+                        </div>
+                    </div>
+
+                    <div class="col-xs-12">
+                        <div class="form-group">
+                            <label for="timeBetween" class="col-xs-2 form-control-static">
+                                <img src="../../Content/images/popup/stopWatch.png"/>
+                            </label>
+                            <p class="form-control-static col-xs-10" id="timeBetween">20 Vehicles/Hr</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="triangle-left"></div>
+                <div class="popup-close-btn" ng-click="vm.hidePopup(event)"><i class="fa fa-times"></i></div>
             </div>
         </custom-marker>
 
-        <info-window id="popup">
-            <div ng-non-bindable="" class="iw-container" dom-on-create="vm.customisePopup()">
+        <!--<info-window id="popup">
+            <div ng-non-bindable class="iw-container" dom-on-create="vm.customisePopup()">
                 <div class="form-horizontal infoPopup">
                     <div class="col-md-12" ng-class="vm.getCongestionClass()">
                         <h4 class="popupHeader">{{vm.popupInfo.header}}</h4>
@@ -51,7 +87,7 @@
                     </div>
                 </div>
             </div>
-        </info-window>
+        </info-window>-->
     </ng-map>
 </div>
 

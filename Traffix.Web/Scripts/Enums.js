@@ -8,7 +8,7 @@ var Traffix;
         Models.Role = {
             Low: "Low",
             Medium: "Medium",
-            High: "High",
+            High: "High"
         };
         Models.EnumLabelDictionary = {
             "RoleLow": "Minimal Congestion",

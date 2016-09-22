@@ -4,6 +4,18 @@
 ****************************************************************************/
 
 declare module Traffix.Models {
+    /** Generated from Traffix.Common.Dtos.AnimatedTrafficMeter **/
+    export interface IAnimatedTrafficMeter {
+        animation: string;
+        id: number;
+        name: string;
+        region: string;
+        latitude: number;
+        longitude: number;
+        congestion: number;
+        dateActive: string;
+        linkId: string;
+    }
     /** Generated from Traffix.Common.Dtos.LinkedTrafficMeters **/
     export interface ILinkedTrafficMeters {
         linkedMeters: Traffix.Models.ITrafficMeter[];

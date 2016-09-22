@@ -167,6 +167,7 @@
     <Compile Include="App_Start\IoCConfig.cs" />
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Dtos\AnimatedTrafficMeter.cs" />
     <Compile Include="Dtos\LinkedTrafficMeters.cs" />
     <Compile Include="Dtos\SortedTrafficLogs.cs" />
     <Compile Include="Dtos\TrafficMetersList.cs" />

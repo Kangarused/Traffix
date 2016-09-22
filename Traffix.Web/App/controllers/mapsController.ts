@@ -14,7 +14,7 @@
         height: number;
         polyLines = [];
 
-        allMeters: Models.ITrafficMeter[] = [];
+        allMeters: Models.IAnimatedTrafficMeter[] = [];
         meters: Models.ILinkedTrafficMeters[];
         logs: Models.ISortedTrafficLogs[];
         snappedMeterCounter = 0;
@@ -71,32 +71,37 @@
         }
 
         updateMeter(meter, log) {
-            var markerId = "meter-" + meter.id;
+            //Get meter from list 
             var curMeter = Enumerable.From(this.allMeters).FirstOrDefault(null, x => x.id === meter.id);
             if (curMeter != null) {
+                //Get array index of meter
                 var meterIndex = this.allMeters.indexOf(curMeter);
-                this.allMeters[meterIndex].congestion = meter.congestion;
 
+                //Update the congestion of the meter used to render the marker and set bounce animation
+                this.allMeters[meterIndex].congestion = meter.congestion;
+                this.allMeters[meterIndex].animation = "Animation.BOUNCE";
+                this.$scope.$apply();
+
+                //After animation runs one time, remove the animation attribute (Animation length ~750ms)
+                this.$timeout(() => {
+                    this.allMeters[meterIndex].animation = " ";
+                    this.$scope.$apply();
+                }, 750);
+
+                //Get current log from array 
                 var curLog = Enumerable.From(this.logs).FirstOrDefault(null, x => x.meterId === meter.id);
                 if (curLog != null) {
+                    //Get array index of current log and push new log data into log list
                     var logIndex = this.logs.indexOf(curLog);
                     this.logs[logIndex].logs.push(log);
                 }
             }
 
-            if ($('.ng-map-info-window').length) {
-                if (this.popupInfo.name === meter.name) {
-                    this.updatePopupInfo(meter);
-                    this.$scope.$apply();
-                }
+            //Update the popup information if the popup is being viewed for the updated meter
+            if (this.popupInfo.name === meter.name) {
+                this.updatePopupInfo(meter);
+                this.$scope.$apply();
             }
-            
-
-            //var marker = this.map.customMarkers[markerId];
-            //marker.setOptions({ animation: "BOUNCE" });
-            //this.$timeout(() => {
-            //    marker.setOptions({ animation: null });
-            //}, 1000);
         }
 
         initMap(map) {
@@ -106,10 +111,9 @@
 
             //Prevent the map from being zoomed out too much and adjust the popup position
             this.map.addListener('zoom_changed', () => {
-                if (this.map.getZoom() < 13) {
-                    this.map.setZoom(13);
+                if (this.map.getZoom() < 9) {
+                    this.map.setZoom(9);
                 }
-                this.adjustPopupPosition();
             });
 
             //Get Searcbox input and use it to create a searchbox control
@@ -129,35 +133,39 @@
                 }
                 var bounds = new google.maps.LatLngBounds();
                 places.forEach((place) => {
-
-                    var region;
+                    var region = null;
                     for (var i = 0; i < place.address_components.length; i++) {
                         //Gets the full name of the state/territory at the searched location
                         if (place.address_components[i].types[0] == 'administrative_area_level_1') {
                             region = place.address_components[i].long_name;
                         }
                     }
-
+                    //Begin the map update process
                     this.updateMap(region);
+                    //Get the bounds of the new location
                     if (place.geometry.viewport) {
                         bounds.union(place.geometry.viewport);
                     } else {
                         bounds.extend(place.geometry.location);
                     }
                 });
+                //Set the map to the new bounds location ie. instantly jump to the new location
                 this.map.fitBounds(bounds);
             });
         }
 
         updateMap(region) {
-            for (var i = 0; i < this.polyLines.length; i++) {
-                this.polyLines[i].setMap(null);
+            //Remove all markers and polylines from the map and load the data for the specified region
+            if (region != null) {
+                for (var i = 0; i < this.polyLines.length; i++) {
+                    this.polyLines[i].setMap(null);
+                }
+                this.polyLines = [];
+                this.allMeters.length = 0;
+                this.meters.length = 0;
+                this.logs.length = 0;
+                this.loadTrafficData(region);
             }
-            this.polyLines = [];
-            this.allMeters.length = 0;
-            this.meters.length = 0;
-            this.logs.length = 0;
-            this.loadTrafficData(region);
         }
 
         loadTrafficData(region) {
@@ -167,10 +175,23 @@
                 var list = {meterIds: []};
                 for (var i = 0; i < this.meters.length; i++) {
                     for (var x = 0; x < this.meters[i].linkedMeters.length; x++) {
-                        this.allMeters.push(this.meters[i].linkedMeters[x]);
+                        //Combine all meters from all groups into one single list for use with the marker repeater
+                        this.allMeters.push({
+                            animation: " ",
+                            id: this.meters[i].linkedMeters[x].id,
+                            name: this.meters[i].linkedMeters[x].name,
+                            region: this.meters[i].linkedMeters[x].region,
+                            latitude: this.meters[i].linkedMeters[x].latitude,
+                            longitude: this.meters[i].linkedMeters[x].longitude,
+                            congestion: this.meters[i].linkedMeters[x].congestion,
+                            dateActive: this.meters[i].linkedMeters[x].dateActive,
+                            linkId: this.meters[i].linkedMeters[x].linkId
+                        });
+                        //Get a list of meter ids grouped by link id -- avoids passing the entire data array around
                         list.meterIds.push(this.meters[i].linkedMeters[x].id);
                     }
                 }
+                //Get traffic log data for the list of meters
                 this.trafficDataService.getTrafficLogsForMeters(list).then(
                 (response) => {
                     this.logs = response.data;
@@ -327,9 +348,8 @@
 
         loadNextRoute(group: number) {
             group++;
-
             if (group < this.meters.length) {
-                //Using timeout to delay the call because Google Maps API can't keep up
+                //Using timeout to avoid breaching google request limit
                 this.$timeout(() => {
                     this.displayRouteForMarkers(group, this.meters[group].linkedMeters[0], this.meters[group].linkedMeters[this.meters[group].linkedMeters.length - 1]);
                 }, 1000);
@@ -337,9 +357,9 @@
         }
 
         getCongestionColor(congestion) {
-            if (congestion == 1) {
+            if (congestion === 1) {
                 return this.colors.medium;
-            } else if (congestion == 2) {
+            } else if (congestion === 2) {
                 return this.colors.high;
             }
             return this.colors.low;
@@ -348,7 +368,12 @@
         showPopup = (evt, meter: Models.ITrafficMeter) => {
             var id = 'meter-' + meter.id;
             this.updatePopupInfo(meter);
-            this.map.showInfoWindow('popup', id);
+            this.map.customMarkers.customPopup.setVisible(true);
+            this.map.customMarkers.customPopup.setPosition(this.map.markers[id].getPosition());
+        }
+
+        hidePopup = (evt) => {
+            this.map.customMarkers.customPopup.setVisible(false);
         }
 
         updatePopupInfo(meter) {
@@ -402,44 +427,14 @@
             }
         }
 
-        customisePopup() {
-            if ($('.ng-map-info-window').length) {
-                //Remove Padded Backgrounds
-                var iwOuter = $('.gm-style-iw');
-                var iwBackground = iwOuter.prev();
-                iwBackground.children(':nth-child(2)').css({ 'display': 'none' });
-                iwBackground.children(':nth-child(4)').css({ 'display': 'none' });
-
-                //Move the Arrow
-                iwBackground.children(':nth-child(1)').attr('style', (i, s) => { return s + 'left: 145px !important;' });
-                iwBackground.children(':nth-child(3)').attr('style', (i, s) => { return s + 'left: 145px !important;' });
-                iwBackground.children(':nth-child(3)').find('div').children().css({ 'box-shadow': 'rgba(156, 156, 156, 0.6) 0px 1px 6px', 'z-index': '1' });
-
-                var iwCloseBtn = iwOuter.next();
-                iwCloseBtn.css({
-                    opacity: '1',
-                    right: '52px',
-                    top: '17px'
-                });
-                iwCloseBtn.mouseout(function() {
-                    $(this).css({ opacity: '1' });
-                });
-
-                this.adjustPopupPosition();
+        getMarkerIcon(congestion: number) {
+            if (congestion === 0) {
+                return '../../Content/images/markers/greenMarker.png';
+            }else if (congestion === 1) {
+                return '../../Content/images/markers/orangeMarker.png';
+            }else {
+                return '../../Content/images/markers/redMarker.png';
             }
-        }
-
-        adjustPopupPosition() {
-            if ($('.ng-map-info-window').length) {
-                var currentTop = $('.ng-map-info-window').position().top;
-                var newTop = (currentTop - 40) + 'px';
-                $('.ng-map-info-window').css('top', newTop);
-
-                var currentLeft = $('.ng-map-info-window').position().left;
-                var newLeft = (currentLeft + 20) + 'px';
-                $('.ng-map-info-window').css('left', newLeft);
-            }
-            this.$scope.$apply();
         }
     }
 }
