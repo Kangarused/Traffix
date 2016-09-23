@@ -13,23 +13,17 @@ namespace Traffix.Web.WebApiFilters
 {
     public class WebApiDecodeFilter : ActionFilterAttribute, IAutofacActionFilter
     {
-        private readonly ICryptoProvider _cryptoProvider;
-
-        public WebApiDecodeFilter(ICryptoProvider cryptoProvider)
+        public WebApiDecodeFilter()
         {
-            _cryptoProvider = cryptoProvider;
+            
         }
 
         public override async void OnActionExecuted(HttpActionExecutedContext context)
         {
             if (context.Response != null && context.Request.Headers.UserAgent.ElementAt(0).Product.Name == Constants.PrivateApiUserAgent && context.Request.Method == HttpMethod.Get)
             {
-                
                 var byteArray = await context.Response.Content.ReadAsByteArrayAsync();
-                var message = Encoding.UTF8.GetString(byteArray, 0, byteArray.Length);
-                var encoded = _cryptoProvider.EncodeMessage(message);
-                context.Response.Content = new ByteArrayContent(encoded);
-                
+                context.Response.Content = new ByteArrayContent(byteArray);
             }
             base.OnActionExecuted(context);
         }

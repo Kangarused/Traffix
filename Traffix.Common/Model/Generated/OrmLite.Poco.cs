@@ -40,10 +40,6 @@ namespace Traffix.Common.Model
         public string Secret { get; set;}
         [Required]
         public string ApplicationType { get; set;}
-        [Required]
-        public bool Active { get; set;}
-        [Required]
-        public string AllowedOrigin { get; set;}
     }
 
 [Alias("TrafficLogs")]

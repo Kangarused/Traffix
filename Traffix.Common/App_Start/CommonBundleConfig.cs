@@ -36,35 +36,15 @@ namespace Traffix.Common
                     "~/TraffixCommon/Embedded/scripts/angular-permission/angular-permission.js",
                     "~/TraffixCommon/Embedded/scripts/angular-ui-router/angular-ui-router.js",
                     "~/TraffixCommon/Embedded/scripts/angular/angular-sanitize.js",
-                    "~/TraffixCommon/Embedded/scripts/angular-pubsub/angular-pubsub.js",
                     "~/TraffixCommon/Embedded/scripts/angular/angular-cookies.js",
                     "~/TraffixCommon/Embedded/scripts/angular/angular-dom-events.js",
-                    "~/TraffixCommon/Embedded/scripts/angular-validation/angular-validation.js",
-                    "~/TraffixCommon/Embedded/scripts/angular-validation/angular-validation-schema.js",
+                    "~/TraffixCommon/Embedded/scripts/linqjs/linq.js",
                     
                     "~/TraffixCommon/Embedded/scripts/bootstrap/bootstrap.js",
                     "~/TraffixCommon/Embedded/scripts/angular-bootstrap/ui-bootstrap-tpls-1.3.3.js",
                     "~/TraffixCommon/Embedded/scripts/custom-angular/show-when-loading.js",
-                    "~/TraffixCommon/Embedded/scripts/custom-angular/track-changes.js",
-                    "~/TraffixCommon/Embedded/scripts/custom-angular/ng-include-replace.js",
-                    "~/TraffixCommon/Embedded/scripts/ng-map/ng-map.min.js",
-
-                    "~/TraffixCommon/Embedded/scripts/moment/moment.js",
-                    "~/TraffixCommon/Embedded/scripts/linqjs/linq.js",
-                    "~/TraffixCommon/Embedded/scripts/bootstrap-datetimepicker/bootstrap-datetimepicker.min.js",
-                    "~/TraffixCommon/Embedded/scripts/bootstrap-datetimepicker/bootstrap-datetimepicker-directive.js"
+                    "~/TraffixCommon/Embedded/scripts/ng-map/ng-map.js"
             ));
-
-            BundleTable.Bundles.Add(new ScriptBundle(SiteCommonAngularSettings)
-                .Include(
-                    "~/TraffixCommon/Embedded/scripts/common-angular-settings/angularCommonInitSettings.js"));
-
-
-            BundleTable.Bundles.Add(new StyleBundle(SiteCommonStyles)
-               .Include(
-                    "~/TraffixCommon/Embedded/styles/bootstrap-datetimepicker/bootstrap-datetimepicker.css"
-                )
-           );
         }
 
         private static void ConfigureRoutes()

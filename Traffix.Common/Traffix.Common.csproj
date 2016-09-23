@@ -168,11 +168,13 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Dtos\AnimatedTrafficMeter.cs" />
+    <Compile Include="Dtos\InsertLogRequest.cs" />
     <Compile Include="Dtos\LinkedTrafficMeters.cs" />
     <Compile Include="Dtos\SortedTrafficLogs.cs" />
     <Compile Include="Dtos\TrafficMetersList.cs" />
     <Compile Include="IocAttributes\PerDependencyAttribute.cs" />
     <Compile Include="IocAttributes\PerRequestAttribute.cs" />
+    <Compile Include="IocAttributes\RequireHttpsAttribute.cs" />
     <Compile Include="IocAttributes\SingletonAttribute.cs" />
     <Compile Include="Model\AuthClient.cs" />
     <Compile Include="Model\Constants.cs" />
@@ -192,7 +194,6 @@
     <Compile Include="Model\TrafficMeter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\ConfigurationManagerProvider.cs" />
-    <Compile Include="Providers\CryptoProvider.cs" />
     <Compile Include="Providers\DateResolver.cs" />
     <Compile Include="Providers\Logging\ConsoleAppender.cs" />
     <Compile Include="Providers\Logging\ILoggingProvider.cs" />
@@ -217,21 +218,6 @@
     <None Include="compilerconfig.json" />
     <None Include="compilerconfig.json.defaults">
       <DependentUpon>compilerconfig.json</DependentUpon>
-    </None>
-    <EmbeddedResource Include="Content\scripts\custom-angular\ng-include-replace.js">
-      <DependentUpon>ng-include-replace.ts</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="Content\scripts\custom-angular\track-changes.js">
-      <DependentUpon>track-changes.ts</DependentUpon>
-    </EmbeddedResource>
-    <None Include="Content\scripts\common-angular-settings\angularCommonInitSettings.js.map">
-      <DependentUpon>angularCommonInitSettings.ts</DependentUpon>
-    </None>
-    <None Include="Content\scripts\custom-angular\ng-include-replace.js.map">
-      <DependentUpon>ng-include-replace.ts</DependentUpon>
-    </None>
-    <None Include="Content\scripts\custom-angular\track-changes.js.map">
-      <DependentUpon>track-changes.ts</DependentUpon>
     </None>
     <None Include="Content\styles\bootstrap\bootstrap.scss" />
     <None Include="Content\styles\bootstrap\sass\mixins\_alerts.scss" />
@@ -305,38 +291,28 @@
     <None Include="Content\styles\bootstrap\sass\_variables.scss" />
     <None Include="Content\styles\bootstrap\sass\_wells.scss" />
     <EmbeddedResource Include="Content\scripts\angular-ui-router\angular-ui-router.js" />
-    <EmbeddedResource Include="Content\scripts\ng-map\ng-map.min.js" />
+    <EmbeddedResource Include="Content\scripts\ng-map\ng-map.js" />
     <EmbeddedResource Include="Content\scripts\signalr\jquery.signalR-2.2.1.js" />
-    <EmbeddedResource Include="Content\scripts\signalr\jquery.signalR-2.2.1.min.js" />
     <EmbeddedResource Include="Content\scripts\angular\angular-dom-events.js" />
+    <EmbeddedResource Include="Content\scripts\linqjs\linq.js" />
     <Content Include="Content\styles\theme\_bootswatch.scss" />
     <None Include="Content\styles\traffix-common.scss" />
     <None Include="Model\Generated\OrmLite.Core.ttinclude" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Content\scripts\common-angular-settings\angularCommonInitSettings.js">
-      <DependentUpon>angularCommonInitSettings.ts</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="Content\scripts\angular-bootstrap\ui-bootstrap-tpls-1.3.3.js" />
     <EmbeddedResource Include="Content\scripts\angular-bootstrap\ui-utils.js" />
     <EmbeddedResource Include="Content\scripts\angular-case\angular-case.js" />
     <EmbeddedResource Include="Content\scripts\angular-permission\angular-permission.js" />
-    <EmbeddedResource Include="Content\scripts\angular-pubsub\angular-pubsub.js" />
-    <EmbeddedResource Include="Content\scripts\angular-validation\angular-validation-schema.js" />
-    <EmbeddedResource Include="Content\scripts\angular-validation\angular-validation.js" />
     <EmbeddedResource Include="Content\scripts\angular\angular-cookies.js" />
     <EmbeddedResource Include="Content\scripts\angular\angular-resource.js" />
     <EmbeddedResource Include="Content\scripts\angular\angular-sanitize.js" />
     <EmbeddedResource Include="Content\scripts\angular\angular-touch.js" />
     <EmbeddedResource Include="Content\scripts\angular\angular.js" />
-    <EmbeddedResource Include="Content\scripts\bootstrap-datetimepicker\bootstrap-datetimepicker-directive.js" />
-    <EmbeddedResource Include="Content\scripts\bootstrap-datetimepicker\bootstrap-datetimepicker.min.js" />
     <EmbeddedResource Include="Content\scripts\bootstrap\bootstrap.js" />
     <EmbeddedResource Include="Content\scripts\custom-angular\show-when-loading.js" />
     <EmbeddedResource Include="Content\scripts\jquery\jquery-1.11.3.js" />
-    <EmbeddedResource Include="Content\scripts\linqjs\linq.js" />
-    <EmbeddedResource Include="Content\scripts\moment\moment.js" />
     <EmbeddedResource Include="Content\styles\bootstrap-datetimepicker\bootstrap-datetimepicker.css" />
     <EmbeddedResource Include="Content\styles\bootstrap-duallistbox\bootstrap-duallistbox.css" />
     <Content Include="Content\styles\traffix-common.css">
@@ -361,19 +337,14 @@
     <Folder Include="Scripts\" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Content\scripts\angular\angular.d.ts" />
-    <TypeScriptCompile Include="Content\scripts\angular-ui-router\angular-ui-router.d.ts" />
-    <TypeScriptCompile Include="Content\scripts\angular\angular-cookies.d.ts" />
+    <EmbeddedResource Include="Content\scripts\typings\angular\angular.d.ts" />
+    <TypeScriptCompile Include="Content\scripts\typings\angular-ui-router\angular-ui-router.d.ts" />
+    <TypeScriptCompile Include="Content\scripts\typings\angular\angular-cookies.d.ts" />
     <TypeScriptCompile Include="Content\scripts\common-angular-settings\angularCommonDefinitions.d.ts" />
-    <TypeScriptCompile Include="Content\scripts\common-angular-settings\angularCommonInitSettings.ts" />
-    <EmbeddedResource Include="Content\scripts\custom-angular\ng-include-replace.ts" />
-    <EmbeddedResource Include="Content\scripts\custom-angular\track-changes.ts" />
-    <TypeScriptCompile Include="Content\scripts\es6-promise\es6-promise.d.ts" />
-    <TypeScriptCompile Include="Content\scripts\google-maps\google.maps.d.ts" />
-    <TypeScriptCompile Include="Content\scripts\linqjs\linq.d.ts" />
-    <TypeScriptCompile Include="Content\scripts\moment\moment-node.d.ts" />
-    <TypeScriptCompile Include="Content\scripts\moment\moment.d.ts" />
-    <TypeScriptCompile Include="Content\scripts\signalr\signalr.d.ts" />
+    <TypeScriptCompile Include="Content\scripts\typings\linqjs\linq.d.ts" />
+    <TypeScriptCompile Include="Content\scripts\typings\es6-promise\es6-promise.d.ts" />
+    <TypeScriptCompile Include="Content\scripts\typings\google-maps\google.maps.d.ts" />
+    <TypeScriptCompile Include="Content\scripts\typings\signalr\signalr.d.ts" />
     <TypeScriptCompile Include="Content\scripts\typings\jquery\jquery.d.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

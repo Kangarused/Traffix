@@ -18,12 +18,11 @@ namespace Traffix.Web
         {
             var config = new HttpConfiguration();
 
-            
             AreaRegistration.RegisterAllAreas();
             log4net.Config.XmlConfigurator.Configure();
             
             var webAssembly = typeof(ApplicationStartup).Assembly;
-            var builder = CommonIoCConfig.InitIoc(webAssembly, new[] { typeof(CommonIoCConfig).Assembly });
+            var builder = CommonIoCConfig.InitIoc(webAssembly, new[] { typeof(CommonIoCConfig).Assembly});
             IoCConfig.ConfigureIoc(builder);
             var container = CommonIoCConfig.WireIoc(builder, config, webAssembly);
 
@@ -33,9 +32,7 @@ namespace Traffix.Web
             WebApiConfig.Register(config, container);
             
             app.UseWebApi(config);
-
             app.MapSignalR();
-
 
             BundleConfig.RegisterBundles(BundleTable.Bundles);
             CommonRouteConfig.RegisterRoutes(RouteTable.Routes);

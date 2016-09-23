@@ -17,10 +17,6 @@ namespace Traffix.Web
 
             builder.Register(c => new LoggingProvider("Traffix Private")).As<ILoggingProvider>().SingleInstance();
 
-            builder.Register(c => new WebApiDecodeFilter(c.Resolve<ICryptoProvider>()))
-            .AsWebApiActionFilterFor<ApiController>()
-            .InstancePerRequest();
-
             builder.Register(c => new TransactionFilterAttribute(c.Resolve<IUnitOfWork>()))
             .AsWebApiActionFilterFor<ApiController>()
             .InstancePerRequest();

@@ -101,10 +101,8 @@ namespace Traffix.Migrations.Profiles
             Insert.IntoTable("AuthClient").Row(new
             {
                 Name = "websiteAuth",
-                Secret = new CryptoProvider(null).GetHash("SHRE%fZy4RL@8vButG#*%^KP6#yK6p"),
-                ApplicationType = "AngularJS front-end Application",
-                Active = true,
-                AllowedOrigin = "http://localhost:2053"
+                Secret = "#123Traffix654@",
+                ApplicationType = "AngularJS Front-End Application"
             });
         }
 

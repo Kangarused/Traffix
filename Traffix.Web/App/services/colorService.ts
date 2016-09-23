@@ -1,5 +1,6 @@
 ﻿module Traffix.Services {
     export interface IColorService {
+        getCongestionColor(state: number): number[];
         calculateIncrement(startColorArray, endColorArray, steps): number[];
         transition(currentColor, targetColor, increment): {hex: string, color: number[]};
         RGB2Hex(colorArray): string;
@@ -10,6 +11,22 @@
     export class ColorService implements IColorService {
         static $inject = [];
         constructor() { }
+
+        colors = {
+            low: [102, 204, 0],
+            medium: [204, 153, 0],
+            high: [204, 0, 0]
+        }
+
+        getCongestionColor(state: number): number[] {
+            if (state === 0) {
+                return this.colors.low;
+            }else if (state === 1) {
+                return this.colors.medium;
+            }else if (state === 2) {
+                return this.colors.high;
+            }
+        }
 
         transition(currentColor, targetColor, increment) {
             // checking R

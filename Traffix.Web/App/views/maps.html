@@ -3,7 +3,7 @@
      map-lazy-load="https://maps.google.com/maps/api/js"
      map-lazy-load-params="{{vm.googleMapsUrl}}">
 
-    <ng-map id="traffixMap" map-initialized="vm.initMap(map)" center="[{{vm.defaultLat}}, {{vm.defaultLong}}]" style="height: {{vm.height}}px;">
+    <ng-map id="traffixMap" map-initialized="vm.initMap(map)" center="[{{vm.defaultLat}}, {{vm.defaultLong}}]" zoom="{{vm.defaultZoom}}" style="height: {{vm.height}}px;">
 
         <marker id="meter-{{p.id}}"
                 position="{{[p.latitude, p.longitude]}}"
@@ -13,7 +13,7 @@
                 animation="{{p.animation}}">
         </marker>
 
-        <custom-marker id="customPopup" position="-12.450095, 130.922595" visible="false">
+        <custom-marker id="customPopup" position="0, 0" visible="false">
             <div class="form-horizontal infoPopup">
                 <div class="col-xs-12" ng-class="vm.getCongestionClass()">
                     <h4 class="popupHeader">{{vm.popupInfo.header}}</h4>

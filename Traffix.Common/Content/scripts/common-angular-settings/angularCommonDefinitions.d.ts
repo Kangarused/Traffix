@@ -1,10 +1,10 @@
-﻿/// <reference path="../angular/angular.d.ts" />
-/// <reference path="../angular/angular-cookies.d.ts" />
-/// <reference path="../linqjs/linq.d.ts" />
-/// <reference path="../angular-ui-router/angular-ui-router.d.ts" />
-/// <reference path="../signalr/signalr.d.ts"/>
-/// <reference path="../google-maps/google.maps.d.ts"/>
-/// <reference path="../es6-promise/es6-promise.d.ts"/>
+﻿/// <reference path="../typings/angular/angular.d.ts" />
+/// <reference path="../typings/angular/angular-cookies.d.ts" />
+/// <reference path="../typings/angular-ui-router/angular-ui-router.d.ts" />
+/// <reference path="../typings/linqjs/linq.d.ts" />
+/// <reference path="../typings/signalr/signalr.d.ts"/>
+/// <reference path="../typings/google-maps/google.maps.d.ts"/>
+/// <reference path="../typings/es6-promise/es6-promise.d.ts"/>
 
 //global vars and functions
  

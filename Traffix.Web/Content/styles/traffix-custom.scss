@@ -52,6 +52,13 @@ ng-map {
     color: #db0000;
 }
 
+.congestionError {
+    background-color: #007cce;
+}
+.congestionError .popupHeader {
+    color: #004674;
+}
+
 // Custom Info Window
 .popupHeader {
     font-weight:bold;
@@ -96,12 +103,17 @@ ng-map {
 
 .popup-close-btn {
     position: absolute;
-    top: -40px;
-    right: 3px;
+    top: -55px;
+    right: -12px;
+    padding: 15px;
     font-size: 15px;
     cursor: pointer;
     color: #2a2a2a;
     color: rgba(0, 0, 0, 0.5);
+}
+
+.popup-close-btn:hover {
+    color: #000;
 }
 
 // Search Box

@@ -15,9 +15,7 @@ namespace Traffix.Migrations.Migrations
                 .WithId()
                 .WithColumn("Name").AsString().NotNullable()
                 .WithColumn("Secret").AsMaxString().NotNullable()
-                .WithColumn("ApplicationType").AsString().NotNullable()
-                .WithColumn("Active").AsBoolean().WithDefaultValue(0).NotNullable()
-                .WithColumn("AllowedOrigin").AsString().NotNullable();
+                .WithColumn("ApplicationType").AsString().NotNullable();
 
             Create.Table("TrafficMeters")
                 .WithId()

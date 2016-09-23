@@ -10,8 +10,6 @@ namespace Traffix.Web
     {
         public static void Register(HttpConfiguration config, IContainer container)
         {
-            Func<ICryptoProvider> cryptoServiceFactory = container.Resolve<ICryptoProvider>;
-            config.Formatters.Add(new CustomBinaryFormatter(cryptoServiceFactory));
             config.Filters.Add(new WebApiExceptionFilter());
         }
     }

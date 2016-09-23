@@ -25,8 +25,6 @@ namespace Traffix.Web
                 .IncludeDirectory("~/App/services", "*.js")
                 //.IncludeDirectory("~/App/directives", "*.js")
                 .Include("~/App/app.js")
-                .Include("~/App/appValidationRules.js")
-                .Include("~/App/appValidationSchemas.js")
             );
 
             bundles.Add(new TemplateBundle("traffix", SitePartials)

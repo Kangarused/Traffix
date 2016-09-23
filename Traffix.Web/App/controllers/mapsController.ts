@@ -1,10 +1,10 @@
 ﻿module Traffix.Controllers {
     export class MapsController {
-        static $inject = ['$scope', '$window', '$rootScope', '$timeout', 'NgMap', 'trafficDataService', 'colorService'];
+        static $inject = ['$scope', '$window', '$timeout', 'NgMap', 'trafficDataService', 'colorService'];
         googleMapsUrl = "https://maps.googleapis.com/maps/api/js?key=AIzaSyCmq2yT3zYiQ1R6uWcP5mB_R_8WnZeJySQ&libraries=places&callback=initMap";
         defaultLat = -12.4463818;
         defaultLong = 130.9157756;
-        defaultZoom = 3;
+        defaultZoom = 13;
         headerHeight = 48;
         traffixHub = null;
         traffixProxy = null;
@@ -28,24 +28,18 @@
             timeBetween: null
         }
 
-        colors = {
-            low: [102, 204, 0],
-            medium: [204, 153, 0],
-            high: [204, 0, 0]
-        }
-
         constructor(
             private $scope: IScope,
             private $window, 
-            private $rootScope,
             private $timeout: ng.ITimeoutService,
             private ngMap,
             private trafficDataService: Services.ITrafficDataService,
             private colorService: Services.IColorService
         ) {
             $scope.vm = this;
-            this.height = $window.innerHeight - this.headerHeight;
 
+            //Fix for the map height scaling
+            this.height = $window.innerHeight - this.headerHeight;
             angular.element($window).bind('resize', () => {
                 this.height = $window.innerHeight - this.headerHeight;
                 $scope.$apply();
@@ -53,9 +47,7 @@
 
             //Setup web-socket connection using Signalr
             this.traffixHub = $.hubConnection();
-            this.traffixHub.logging = true;
             this.traffixProxy = this.traffixHub.createHubProxy('trafficHub');
-            this.traffixProxy.logging = true;
             this.traffixProxy.on('meterUpdated', (event, meter, log) => {
                 //Converting from uppercase notation to lowercase notation due to signalr passing the C# class
                 var convertMeter = { id: meter.Id, name: meter.Name, congestion: meter.Congestion };
@@ -128,7 +120,7 @@
             //Attach listener to the searchbox that will update the map position on search
             google.maps.event.addListener(this.searchBox, 'places_changed', () => {
                 var places = this.searchBox.getPlaces();
-                if (places.length == 0) {
+                if (places.length === 0) {
                     return;
                 }
                 var bounds = new google.maps.LatLngBounds();
@@ -136,7 +128,7 @@
                     var region = null;
                     for (var i = 0; i < place.address_components.length; i++) {
                         //Gets the full name of the state/territory at the searched location
-                        if (place.address_components[i].types[0] == 'administrative_area_level_1') {
+                        if (place.address_components[i].types[0] === 'administrative_area_level_1') {
                             region = place.address_components[i].long_name;
                         }
                     }
@@ -202,9 +194,11 @@
 
         snapMetersToRoads() {
             var directionsService = new google.maps.DirectionsService();
+            //Loops through each meter in each group of meters
             for (var i = 0; i < this.meters.length; i++) {
                 for (var x = 0; x < this.meters[i].linkedMeters.length; x++) {
 
+                    //Origin == Destination in order to snap the marker to the nearest road
                     var latlng = { lat: this.meters[i].linkedMeters[x].latitude, lng: this.meters[i].linkedMeters[x].longitude };
                     var request = {
                         origin: latlng,
@@ -212,8 +206,9 @@
                         travelMode: google.maps.TravelMode.DRIVING
                     };
 
+                    //Determine if this is the last meter
                     var lastMeter = (i === this.meters.length - 1);
-
+                    //Request the 'route' from google servers and perform callback on response
                     directionsService.route(request, this.updateMeters(i, x, lastMeter));
                 }
             }
@@ -222,13 +217,19 @@
         updateMeters = (group, index, lastMeter: boolean) => {
             return (response, status) => {
                 if (status === google.maps.DirectionsStatus.OK) {
+                    //Only intersted in the first point of the route
                     var pos = response.routes[0].legs[0].start_location;
+
+                    //Update the meters position
                     this.meters[group].linkedMeters[index].latitude = pos.lat();
                     this.meters[group].linkedMeters[index].longitude = pos.lng();
+
+                    //Increase counter and inform angular to update view
                     this.snappedMeterCounter++;
                     this.$scope.$apply();
 
                     if (lastMeter) {
+                        //If this was the last meter then begin displaying links between meter groups
                         this.displayRouteForMarkers(0, this.meters[0].linkedMeters[0], this.meters[0].linkedMeters[this.meters[0].linkedMeters.length - 1]);
                     }
                 }
@@ -236,14 +237,16 @@
         }
 
         displayRouteForMarkers(group, start: Models.ITrafficMeter, end: Models.ITrafficMeter) {
+            //Only display path if meter group has more than one meter (otherwise there is no meter to link to)
             if (this.meters[group].linkedMeters.length > 1) {
-                
                 var startPoint = { lat: start.latitude, lng: start.longitude };
                 var endPoint = { lat: end.latitude, lng: end.longitude };
                 var wayPoints = [];
                 var request;
 
+                //If there are more than two meters in this group then use way points to reduce the number of server calls
                 if (this.meters[group].linkedMeters.length > 2) {
+                    //Ignore the first and last elements (already declared as start and end points) save the rest to waypoints
                     for (var i = 1; i < this.meters[group].linkedMeters.length - 1; i++) {
                         wayPoints.push({
                             location: { lat: this.meters[group].linkedMeters[i].latitude, lng: this.meters[group].linkedMeters[i].longitude },
@@ -256,16 +259,23 @@
                         waypoints: wayPoints,
                         travelMode: google.maps.TravelMode.DRIVING
                     }
+                    //Supply callback function: loadRoutes 
                     this.directionsService.route(request, this.loadRoutes(group, true, start, end));
-                } else {
+                }
+                //Only two meters in this group, no need to use waypoints
+                else {
                     request = {
                         origin: startPoint,
                         destination: endPoint,
                         travelMode: google.maps.TravelMode.DRIVING
                     }
+                    //Supply callback function: loadRoutes 
                     this.directionsService.route(request, this.loadRoutes(group, false, start, end));
                 }
-            } else {
+            }
+            //Only one meter in this group, do not render any paths
+            else {
+                //If this is not the last group to render paths for then recursively call this method
                 if (group < this.meters.length) {
                     group++;
                     this.displayRouteForMarkers(group, this.meters[group].linkedMeters[0], this.meters[group].linkedMeters[1]);
@@ -287,15 +297,21 @@
         }
 
         drawWaypointRoutes(route, group) {
+            //Returns the number of paths connecting all waypoints
             var points = route.routes[0].legs.length;
             var currentMeter = 1;
+            //Loop through and render all paths to join all meters in the group
             for (var i = 0; i < points; i++) {
+                //Get the path colours of the first and second meters for this path from their congestion levels
                 var pathColor = this.colorService.RGB2Hex(this.getCongestionColor(this.meters[group].linkedMeters[currentMeter-1].congestion));
                 var currentColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.meters[group].linkedMeters[currentMeter - 1].congestion));
                 var endColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.meters[group].linkedMeters[currentMeter].congestion));
 
+                //Get the number of steps in this path
                 var steps = route.routes[0].legs[i].steps[0].path.length;
+                //Get the required increment amount to transition from colour 1 to colour 2 in the specified number of steps
                 var increment = this.colorService.calculateIncrement(currentColor, endColor, steps);
+                //Draw the path
                 this.drawPath(route.routes[0].legs[i].steps[0].path, steps, increment, pathColor, currentColor, endColor);
                 currentMeter++;
             }
@@ -309,17 +325,21 @@
 
             var steps = route.routes[0].overview_path.length;
             var increment = this.colorService.calculateIncrement(currentColor, endColor, steps);
+
+            //Wait until path drawing is complete then load next path to draw
             this.drawPath(route.routes[0].overview_path, steps, increment, pathColor, currentColor, endColor).then(
-            (resposne) => {
+            (response) => {
                 this.loadNextRoute(group);
             });
         }
 
         drawPath(pathComponents, steps, increment, pathColor, currentColor, endColor) {
             return new Promise((resolve, reject) => {
+                //Double check that path elements exist
                 if (pathComponents != null) {
                     for (var i = 0; i < steps; i++) {
                         var path;
+                        //Error checking to prevent overstepping the array bounds and still render the last element
                         if (i + 1 >= steps) {
                             path = [pathComponents[i], pathComponents[i]];
                         } else {
@@ -333,11 +353,15 @@
                             strokeOpacity: 1
                         });
 
+                        //Show this path piece on the map
                         snappedPolyline.setMap(this.map);
+                        //Keep track of all path pieces
                         this.polyLines.push(snappedPolyline);
+                        //Update colour to create the gradient
                         var transition = this.colorService.transition(currentColor, endColor, increment);
                         pathColor = transition.hex;
                         currentColor = transition.color;
+                        //Signal that the promise task is complete
                         resolve();
                     }
                 } else {
@@ -349,7 +373,7 @@
         loadNextRoute(group: number) {
             group++;
             if (group < this.meters.length) {
-                //Using timeout to avoid breaching google request limit
+                //Using one second timeout to avoid breaching google request limit
                 this.$timeout(() => {
                     this.displayRouteForMarkers(group, this.meters[group].linkedMeters[0], this.meters[group].linkedMeters[this.meters[group].linkedMeters.length - 1]);
                 }, 1000);
@@ -357,17 +381,13 @@
         }
 
         getCongestionColor(congestion) {
-            if (congestion === 1) {
-                return this.colors.medium;
-            } else if (congestion === 2) {
-                return this.colors.high;
-            }
-            return this.colors.low;
+            return this.colorService.getCongestionColor(congestion);
         }
 
         showPopup = (evt, meter: Models.ITrafficMeter) => {
             var id = 'meter-' + meter.id;
             this.updatePopupInfo(meter);
+            this.map.customMarkers.customPopup.setPosition(this.map.markers[id].getPosition());
             this.map.customMarkers.customPopup.setVisible(true);
             this.map.customMarkers.customPopup.setPosition(this.map.markers[id].getPosition());
         }
@@ -386,34 +406,40 @@
 
         getCongestionClass() {
             var congestion = this.popupInfo.congestion;
-            if (congestion == 0) {
+            if (congestion === 0) {
                 return 'lowCongestion';
-            } else if (congestion == 1) {
+            } else if (congestion === 1) {
                 return 'moderateCongestion';
-            } else if (congestion == 2) {
+            } else if (congestion === 2) {
                 return 'highCongestion';
+            } else {
+                //Gracefully fail - sets to a similar theme as the navigation bar
+                return 'congestionError';
             }
-            return '';
         }
 
         getCongestionHeader(congestion) {
-            if (congestion == 0) {
+            if (congestion === 0) {
                 return 'Low Congestion';
-            }else if (congestion == 1) {
+            }else if (congestion === 1) {
                 return 'Moderate Congestion';
-            }else if (congestion == 2) {
+            }else if (congestion === 2) {
                 return 'High Congestion';
             }
+            //Gracefully fail - Display generic title
             return 'Meter Statistics';
         }
 
         getAverageSpeed(meter) {
+            //Get the logs for the specified meter if they exist
             var meterLogs = Enumerable.From(this.logs).FirstOrDefault(null, (x) => x.meterId === meter.id);
             if (meterLogs != null) {
                 var avgSpeed = 0;
+                //Add all speeds and then divide by the element count to get the average speed
                 for (var i = 0; i < meterLogs.logs.length; i++) {
                     avgSpeed += meterLogs.logs[i].speed;
                 }
+                //Round to two decimal places
                 avgSpeed = +((avgSpeed / meterLogs.logs.length).toFixed(2));
                 return avgSpeed;
             }
@@ -432,8 +458,10 @@
                 return '../../Content/images/markers/greenMarker.png';
             }else if (congestion === 1) {
                 return '../../Content/images/markers/orangeMarker.png';
-            }else {
+            } else if (congestion === 2) {
                 return '../../Content/images/markers/redMarker.png';
+            } else {
+                return '../../Content/images/markers/errorMarker.png';
             }
         }
     }

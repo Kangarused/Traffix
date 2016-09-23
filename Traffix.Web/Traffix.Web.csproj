@@ -19,7 +19,7 @@
     <AssemblyName>Traffix.Web</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <UseIISExpress>true</UseIISExpress>
-    <IISExpressSSLPort />
+    <IISExpressSSLPort>44325</IISExpressSSLPort>
     <IISExpressAnonymousAuthentication>enabled</IISExpressAnonymousAuthentication>
     <IISExpressWindowsAuthentication>enabled</IISExpressWindowsAuthentication>
     <IISExpressUseClassicPipelineMode>false</IISExpressUseClassicPipelineMode>
@@ -243,12 +243,6 @@
     <Content Include="App\app.js">
       <DependentUpon>app.ts</DependentUpon>
     </Content>
-    <Content Include="App\appValidationRules.js">
-      <DependentUpon>appValidationRules.ts</DependentUpon>
-    </Content>
-    <Content Include="App\appValidationSchemas.js">
-      <DependentUpon>appValidationSchemas.ts</DependentUpon>
-    </Content>
     <Content Include="App\controllers\mapsController.js">
       <DependentUpon>mapsController.ts</DependentUpon>
     </Content>
@@ -263,6 +257,7 @@
     </Content>
     <Content Include="App\views\maps.html" />
     <Content Include="Content\images\loading-animation.gif" />
+    <Content Include="Content\images\markers\errorMarker.png" />
     <Content Include="Content\images\markers\greenMarker.png" />
     <Content Include="Content\images\markers\orangeMarker.png" />
     <Content Include="Content\images\markers\redMarker.png" />
@@ -309,6 +304,7 @@
     <Compile Include="Database\OrmLiteInfrastructure\AbstractRepository.cs" />
     <Compile Include="Database\OrmLiteInfrastructure\OrmLiteLogger .cs" />
     <Compile Include="Database\OrmLiteInfrastructure\UnitOfWork.cs" />
+    <Compile Include="Database\Repositories\AuthRepository.cs" />
     <Compile Include="Database\Repositories\TrafficLogRepository.cs" />
     <Compile Include="Database\Repositories\TrafficMeterRepository.cs" />
     <Compile Include="Global.asax.cs">
@@ -317,10 +313,7 @@
     <Compile Include="Hubs\TrafficHub.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Providers\DatabaseVersionReader.cs" />
-    <Compile Include="Providers\HttpContextProvider.cs" />
     <Compile Include="Providers\TraffixUpdateProvider.cs" />
-    <Compile Include="WebApiFilters\CustomBinaryFormatter.cs" />
-    <Compile Include="WebApiFilters\InternalApiAuthorize.cs" />
     <Compile Include="WebApiFilters\TransactionFilter.cs" />
     <Compile Include="WebApiFilters\WebApiDecodeFilter.cs" />
     <Compile Include="WebApiFilters\WebApiExceptionFilter.cs" />
@@ -329,12 +322,6 @@
     <Content Include="packages.config" />
     <Content Include="App\app.js.map">
       <DependentUpon>app.ts</DependentUpon>
-    </Content>
-    <Content Include="App\appValidationRules.js.map">
-      <DependentUpon>appValidationRules.ts</DependentUpon>
-    </Content>
-    <Content Include="App\appValidationSchemas.js.map">
-      <DependentUpon>appValidationSchemas.ts</DependentUpon>
     </Content>
     <Content Include="Content\styles\traffix-custom.scss" />
     <Content Include="Scripts\T4TS.tt.settings.t4" />
@@ -358,7 +345,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Models\Validators\" />
     <Folder Include="Utils\" />
   </ItemGroup>
   <ItemGroup>
@@ -368,8 +354,6 @@
   <ItemGroup>
     <TypeScriptCompile Include="App\app.d.ts" />
     <TypeScriptCompile Include="App\app.ts" />
-    <TypeScriptCompile Include="App\appValidationRules.ts" />
-    <TypeScriptCompile Include="App\appValidationSchemas.ts" />
     <TypeScriptCompile Include="App\controllers\mapsController.ts" />
     <TypeScriptCompile Include="App\services\colorService.ts" />
     <TypeScriptCompile Include="App\services\signalrDataService.ts" />
@@ -390,9 +374,6 @@
       <Project>{8dc1367f-469a-4f07-87fc-cfb392c89655}</Project>
       <Name>Traffix.Common</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
