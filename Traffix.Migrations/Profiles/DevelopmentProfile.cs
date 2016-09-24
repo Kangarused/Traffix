@@ -1,13 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FluentMigrator;
 using FluentMigrator.Runner.Extensions;
 using Traffix.Common.Model;
-using Traffix.Common.Providers;
-using Traffix.Common.Utils.Extensions;
 using Traffix.Migrations.Profiles.MockData;
 
 namespace Traffix.Migrations.Profiles
@@ -25,7 +20,8 @@ namespace Traffix.Migrations.Profiles
                 Longitude = 130.922595,
                 Congestion = 1,
                 DateActive = DateTime.Now,
-                LinkId = "Tiger Brennan"
+                LinkId = "Tiger Brennan",
+                SpeedLimit = 100
             },
             new MockTrafficMeter {
                 Id = 2,
@@ -33,9 +29,10 @@ namespace Traffix.Migrations.Profiles
                 Region = "Northern Territory",
                 Latitude = -12.435336,
                 Longitude = 130.897257,
-                Congestion = 0,
+                Congestion = (int)CongestionTypes.Low,
                 DateActive = DateTime.Now,
-                LinkId = "Tiger Brennan"
+                LinkId = "Tiger Brennan",
+                SpeedLimit = 100
             },
             new MockTrafficMeter {
                 Id = 3,
@@ -43,9 +40,10 @@ namespace Traffix.Migrations.Profiles
                 Region = "Northern Territory",
                 Latitude = -12.425474,
                 Longitude = 130.886922,
-                Congestion = 1,
+                Congestion = (int)CongestionTypes.Low,
                 DateActive = DateTime.Now,
-                LinkId = "Winnelle"
+                LinkId = "Winnelle",
+                SpeedLimit = 80
             },
             new MockTrafficMeter {
                 Id = 4,
@@ -53,9 +51,10 @@ namespace Traffix.Migrations.Profiles
                 Region = "Northern Territory",
                 Latitude = -12.425228,
                 Longitude = 130.881365,
-                Congestion = 2,
+                Congestion = (int)CongestionTypes.Low,
                 DateActive = DateTime.Now,
-                LinkId = "Winnelle"
+                LinkId = "Winnelle",
+                SpeedLimit = 80
             },
             new MockTrafficMeter {
                 Id = 5,
@@ -63,9 +62,10 @@ namespace Traffix.Migrations.Profiles
                 Region = "Northern Territory",
                 Latitude = -12.425375,
                 Longitude = 130.871489,
-                Congestion = 1,
+                Congestion = (int)CongestionTypes.Low,
                 DateActive = DateTime.Now,
-                LinkId = "Winnelle"
+                LinkId = "Winnelle",
+                SpeedLimit = 80
             },
             new MockTrafficMeter {
                 Id = 6,
@@ -73,9 +73,10 @@ namespace Traffix.Migrations.Profiles
                 Region = "Northern Territory",
                 Latitude = -12.426721,
                 Longitude = 130.863247,
-                Congestion = 0,
+                Congestion = (int)CongestionTypes.Low,
                 DateActive = DateTime.Now,
-                LinkId = "Winnelle"
+                LinkId = "Winnelle",
+                SpeedLimit = 80
             },
             new MockTrafficMeter {
                 Id = 7,
@@ -83,9 +84,10 @@ namespace Traffix.Migrations.Profiles
                 Region = "Northern Territory",
                 Latitude = -12.429246,
                 Longitude = 130.857377,
-                Congestion = 0,
+                Congestion = (int)CongestionTypes.Low,
                 DateActive = DateTime.Now,
-                LinkId = "Winnelle"
+                LinkId = "Winnelle",
+                SpeedLimit = 80
             }
         }; 
 
@@ -119,7 +121,8 @@ namespace Traffix.Migrations.Profiles
                     meter.Longitude,
                     meter.Congestion,
                     meter.DateActive,
-                    meter.LinkId
+                    meter.LinkId,
+                    meter.SpeedLimit
                 });
             }
         }
@@ -127,19 +130,16 @@ namespace Traffix.Migrations.Profiles
         private void GenerateLogs()
         {
             Random rand = new Random();
-            int randomTime = 0;
-            int randomSpeed = 0;
 
             foreach (MockTrafficMeter meter in _trafficMeters)
             {
-                for (int x = 0; x < 20; x++)
+                for (int x = 0; x < 5; x++)
                 {
-                    randomTime = rand.Next(1, 600);
-                    randomSpeed = rand.Next(50, 130);
+                    var randomSpeed = rand.Next(50, 130);
                     Insert.IntoTable("TrafficLogs").Row(new
                     {
                         MeterId = meter.Id,
-                        Time = DateTime.Now.AddMinutes(randomTime),
+                        Time = DateTime.Now,
                         Speed = randomSpeed
                     });
                 }

@@ -70,7 +70,21 @@
                 var meterIndex = this.allMeters.indexOf(curMeter);
 
                 //Update the congestion of the meter used to render the marker and set bounce animation
-                this.allMeters[meterIndex].congestion = meter.congestion;
+                if (this.allMeters[meterIndex].congestion !== meter.congestion) {
+                    this.allMeters[meterIndex].congestion = meter.congestion;
+                    var index = this.polyLines.indexOf(Enumerable.From(this.polyLines).FirstOrDefault(null, x => x.meter.id === meter.id));
+                    if (index !== -1) {
+                        this.polyLines[index].meter.congestion = meter.congestion;
+                        this.updatePathForMeters(index, meter);
+                    } 
+
+                    var linkedIndex = this.polyLines.indexOf(Enumerable.From(this.polyLines).FirstOrDefault(null, x => x.data.linkedMeter.id === meter.id));
+                    if (linkedIndex !== -1) {
+                        this.polyLines[linkedIndex].data.linkedMeter.congestion = meter.congestion;
+                        this.updatePathForMeters(linkedIndex, meter);
+                    }
+                }
+                
                 this.allMeters[meterIndex].animation = "Animation.BOUNCE";
                 this.$scope.$apply();
 
@@ -93,6 +107,19 @@
             if (this.popupInfo.name === meter.name) {
                 this.updatePopupInfo(meter);
                 this.$scope.$apply();
+            }
+        }
+
+        updatePathForMeters(index, meter) {
+            var group = this.polyLines[index];
+            if (group != null) {
+                var pathColor = this.colorService.RGB2Hex(this.getCongestionColor(this.polyLines[index].meter.congestion));
+                var currentColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.polyLines[index].meter.congestion));
+                var endColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.polyLines[index].data.linkedMeter.congestion));
+
+                var steps = this.polyLines[index].data.polyLines.length;
+                var increment = this.colorService.calculateIncrement(currentColor, endColor, steps);
+                this.updatePath(meter, index, increment, pathColor, currentColor, endColor);
             }
         }
 
@@ -150,13 +177,19 @@
             //Remove all markers and polylines from the map and load the data for the specified region
             if (region != null) {
                 for (var i = 0; i < this.polyLines.length; i++) {
-                    this.polyLines[i].setMap(null);
+                    this.clearPolylines(i);
                 }
                 this.polyLines = [];
                 this.allMeters.length = 0;
                 this.meters.length = 0;
                 this.logs.length = 0;
                 this.loadTrafficData(region);
+            }
+        }
+
+        clearPolylines(index) {
+            for (var x = 0; x < this.polyLines[index].data.polyLines.length; x++) {
+                this.polyLines[index].data.polyLines.setMap(null);
             }
         }
 
@@ -302,6 +335,15 @@
             var currentMeter = 1;
             //Loop through and render all paths to join all meters in the group
             for (var i = 0; i < points; i++) {
+
+                this.polyLines.push({
+                    meter: this.meters[group].linkedMeters[currentMeter - 1],
+                    data: {
+                        linkedMeter: this.meters[group].linkedMeters[currentMeter],
+                        polyLines: []
+                    }
+                });
+
                 //Get the path colours of the first and second meters for this path from their congestion levels
                 var pathColor = this.colorService.RGB2Hex(this.getCongestionColor(this.meters[group].linkedMeters[currentMeter-1].congestion));
                 var currentColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.meters[group].linkedMeters[currentMeter - 1].congestion));
@@ -312,13 +354,22 @@
                 //Get the required increment amount to transition from colour 1 to colour 2 in the specified number of steps
                 var increment = this.colorService.calculateIncrement(currentColor, endColor, steps);
                 //Draw the path
-                this.drawPath(route.routes[0].legs[i].steps[0].path, steps, increment, pathColor, currentColor, endColor);
+                this.drawPath(this.meters[group].linkedMeters[currentMeter - 1], route.routes[0].legs[i].steps[0].path, steps, increment, pathColor, currentColor, endColor);
                 currentMeter++;
             }
             this.loadNextRoute(group);
         }
 
         drawSingleRoute(route, group) {
+
+            this.polyLines.push({
+                meter: this.meters[group].linkedMeters[0],
+                data: {
+                    linkedMeter: this.meters[group].linkedMeters[1],
+                    polyLines: []
+                }
+            });
+
             var pathColor = this.colorService.RGB2Hex(this.getCongestionColor(this.meters[group].linkedMeters[0].congestion));
             var currentColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.meters[group].linkedMeters[0].congestion));
             var endColor = this.colorService.RGBtoHSV(this.getCongestionColor(this.meters[group].linkedMeters[1].congestion));
@@ -327,13 +378,13 @@
             var increment = this.colorService.calculateIncrement(currentColor, endColor, steps);
 
             //Wait until path drawing is complete then load next path to draw
-            this.drawPath(route.routes[0].overview_path, steps, increment, pathColor, currentColor, endColor).then(
+            this.drawPath(this.meters[group].linkedMeters[0], route.routes[0].overview_path, steps, increment, pathColor, currentColor, endColor).then(
             (response) => {
                 this.loadNextRoute(group);
             });
         }
 
-        drawPath(pathComponents, steps, increment, pathColor, currentColor, endColor) {
+        drawPath(meter, pathComponents, steps, increment, pathColor, currentColor, endColor) {
             return new Promise((resolve, reject) => {
                 //Double check that path elements exist
                 if (pathComponents != null) {
@@ -356,18 +407,35 @@
                         //Show this path piece on the map
                         snappedPolyline.setMap(this.map);
                         //Keep track of all path pieces
-                        this.polyLines.push(snappedPolyline);
+                        var index = this.polyLines.indexOf(Enumerable.From(this.polyLines).FirstOrDefault(null, x => x.meter.id === meter.id));
+                        if (index != null) {
+                            this.polyLines[index].data.polyLines.push(snappedPolyline);
+                        }
                         //Update colour to create the gradient
                         var transition = this.colorService.transition(currentColor, endColor, increment);
                         pathColor = transition.hex;
                         currentColor = transition.color;
-                        //Signal that the promise task is complete
-                        resolve();
                     }
+                    //Signal that the promise task is complete
+                    resolve();
                 } else {
                     reject(Error("Path Components is Undefined"));
                 }
             });
+        }
+
+        updatePath(meter, index, increment, pathColor, currentColor, endColor) {
+            //Double check that path elements exist
+            if (this.polyLines[index].data.polyLines != null) {
+                for (var i = 0; i < this.polyLines[index].data.polyLines.length; i++) {
+                    this.polyLines[index].data.polyLines[i].setOptions({ strokeColor: pathColor });
+
+                    //Update colour to create the gradient
+                    var transition = this.colorService.transition(currentColor, endColor, increment);
+                    pathColor = transition.hex;
+                    currentColor = transition.color;
+                }
+            }
         }
 
         loadNextRoute(group: number) {

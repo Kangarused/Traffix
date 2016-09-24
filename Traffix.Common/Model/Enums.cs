@@ -9,7 +9,7 @@ using Traffix.Common.Utils;
 namespace Traffix.Common.Model
 {
     [TypescriptEnum]
-    public enum Role
+    public enum CongestionTypes
     {
         [Description("Minimal Congestion")]
         Low = 0,

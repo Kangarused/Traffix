@@ -5,15 +5,15 @@ var Traffix;
 (function (Traffix) {
     var Models;
     (function (Models) {
-        Models.Role = {
+        Models.CongestionTypes = {
             Low: "Low",
             Medium: "Medium",
             High: "High"
         };
         Models.EnumLabelDictionary = {
-            "RoleLow": "Minimal Congestion",
-            "RoleMedium": "Medium Congestion",
-            "RoleHigh": "High Congestion",
+            "CongestionTypesLow": "Minimal Congestion",
+            "CongestionTypesMedium": "Medium Congestion",
+            "CongestionTypesHigh": "High Congestion",
             get: function (type, key) {
                 return this[type + key];
             }

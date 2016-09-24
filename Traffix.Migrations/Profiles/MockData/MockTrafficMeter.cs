@@ -16,5 +16,6 @@ namespace Traffix.Migrations.Profiles.MockData
         public int Congestion { get; set; }
         public DateTime DateActive { get; set; }
         public string LinkId { get; set; }
+        public int SpeedLimit { get; set; }
     }
 }

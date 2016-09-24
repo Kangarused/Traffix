@@ -5,18 +5,18 @@
 
 module Traffix.Models {
 
-	 export type IRole = "Low" | "Medium" | "High";
+	 export type ICongestionTypes = "Low" | "Medium" | "High";
 
 
-	 export const Role = {
-		 Low: "Low" as IRole,
-		 Medium: "Medium" as IRole,
-		 High: "High" as IRole,
+	 export const CongestionTypes = {
+		 Low: "Low" as ICongestionTypes,
+		 Medium: "Medium" as ICongestionTypes,
+		 High: "High" as ICongestionTypes,
 	 }
 	export const EnumLabelDictionary = {
-		"RoleLow":"Minimal Congestion",
-		"RoleMedium":"Medium Congestion",
-		"RoleHigh":"High Congestion",
+		"CongestionTypesLow":"Minimal Congestion",
+		"CongestionTypesMedium":"Medium Congestion",
+		"CongestionTypesHigh":"High Congestion",
 		get: function(type, key) {
 			return this[type + key];
 		}

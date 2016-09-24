@@ -74,6 +74,8 @@ namespace Traffix.Common.Model
         public string DateActive { get; set;}
         [Required]
         public string LinkId { get; set;}
+        [Required]
+        public int SpeedLimit { get; set; }
     }
 
 [Alias("VersionInfo")]

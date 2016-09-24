@@ -25,6 +25,7 @@ namespace Traffix.Migrations.Migrations
                 .WithColumn("Longitude").AsDouble().NotNullable()
                 .WithColumn("Congestion").AsInt32().NotNullable()
                 .WithColumn("DateActive").AsString().Nullable()
+                .WithColumn("SpeedLimit").AsInt32().NotNullable()
                 .WithColumn("LinkId").AsString().NotNullable();
 
             Create.Table("TrafficLogs")

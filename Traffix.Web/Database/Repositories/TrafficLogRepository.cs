@@ -16,6 +16,7 @@ namespace Traffix.Web.Database.Repositories
     {
         Task<List<TrafficLog>> GetTrafficLogsForMeter(int meterId);
         Task<List<SortedTrafficLogs>> GetTrafficLogsForMeters(TrafficMetersList list);
+        Task<List<TrafficLog>> GetSampleOfTrafficLogs(int meterId);
     }
 
     [PerRequest]
@@ -48,6 +49,16 @@ namespace Traffix.Web.Database.Repositories
             }
 
             return request;
+        }
+
+        public async Task<List<TrafficLog>> GetSampleOfTrafficLogs(int meterId)
+        {
+            var query = Db.From<TrafficLog>().Where(x => x.MeterId == meterId);
+            query.OrderBy(x => x.Id);
+            query.Limit(10);
+
+            var result = await Db.LoadSelectAsync(query);
+            return result;
         }
     }
 }

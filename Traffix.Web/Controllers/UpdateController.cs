@@ -45,6 +45,11 @@ namespace Traffix.Web.Controllers
                 var meter = await _trafficMeterRepoistory.GetByIdAsync(data.MeterId);
                 if (meter != null)
                 {
+                    var newCongestion = await UpdateCongestionLevel(meter);
+                    meter.Congestion = (int) newCongestion;
+
+                    await _trafficMeterRepoistory.UpdateAsync(meter);
+
                     TrafficLog newLog = new TrafficLog
                     {
                         MeterId = meter.Id,
@@ -63,8 +68,28 @@ namespace Traffix.Web.Controllers
             throw new HttpResponseException(HttpStatusCode.Unauthorized);
         }
 
+        private async Task<CongestionTypes> UpdateCongestionLevel(TrafficMeter meter)
+        {
+            var sample = await _trafficLogRepoistory.GetSampleOfTrafficLogs(meter.Id);
+            var averageSpeed = (sample.Sum(log => log.Speed)/sample.Count);
+
+            //Low Congestion if average speed is equal to or greater than 70% of normal speed
+            if (averageSpeed >= (meter.SpeedLimit*0.7))
+            {
+                return CongestionTypes.Low;
+            }
+
+            //Medium Congestion if average speed is betwwen 40% and 70% of normal speed
+            if ((meter.SpeedLimit*0.4 <= averageSpeed && averageSpeed < (meter.SpeedLimit*0.7)))
+            {
+                return CongestionTypes.Medium;
+            }
+
+            //High Congestion if average speed is less than 40% of normal speed
+            return CongestionTypes.High;
+        }
+
         [HttpGet]
-        [RequireHttps]
         public async Task<string> InsertLogForAllMeters()
         {
             var meters = await _trafficMeterRepoistory.GetAllAsync();
@@ -75,6 +100,11 @@ namespace Traffix.Web.Controllers
                 {
                     if (meter != null)
                     {
+                        //var newCongestion = await UpdateCongestionLevel(meter);
+                        meter.Congestion = (int)CongestionTypes.Low;
+
+                        await _trafficMeterRepoistory.UpdateAsync(meter);
+
                         Random rand = new Random();
 
                         TrafficLog newLog = new TrafficLog
@@ -90,32 +120,6 @@ namespace Traffix.Web.Controllers
                     }
                 }
                 return "LOGS ADDED";
-            }
-            throw new HttpResponseException(HttpStatusCode.BadRequest);
-        }
-
-        [HttpGet]
-        [RequireHttps]
-        public async Task<string> InsertLogForMeter(int param)
-        {
-            var meter = await _trafficMeterRepoistory.GetByIdAsync(param);
-
-            if (meter != null)
-            {
-                Random rand = new Random();
-
-                TrafficLog newLog = new TrafficLog
-                {
-                    MeterId = meter.Id,
-                    Time = DateTime.Now,
-                    Speed = rand.Next(40, 130)
-                };
-
-                await _trafficLogRepoistory.InsertAsync(newLog);
-
-                _traffixUpdateProvider.MeterUpdated(meter.Region, meter, newLog);
-
-                return "LOG ADDED";
             }
             throw new HttpResponseException(HttpStatusCode.BadRequest);
         }
