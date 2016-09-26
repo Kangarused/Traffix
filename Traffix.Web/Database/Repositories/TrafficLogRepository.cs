@@ -54,7 +54,7 @@ namespace Traffix.Web.Database.Repositories
         public async Task<List<TrafficLog>> GetSampleOfTrafficLogs(int meterId)
         {
             var query = Db.From<TrafficLog>().Where(x => x.MeterId == meterId);
-            query.OrderBy(x => x.Id);
+            query.OrderByDescending(x => x.Id);
             query.Limit(10);
 
             var result = await Db.LoadSelectAsync(query);
